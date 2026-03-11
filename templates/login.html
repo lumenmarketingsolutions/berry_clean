@@ -52,8 +52,6 @@
     }
     #welcome-content.in { opacity:1; transform:translateY(0); }
     .wf-logo { height:52px; margin-bottom:6px; }
-    #wf-brand { font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:#c08080; opacity:0; transition:opacity .4s .1s; }
-    #welcome-content.in #wf-brand { opacity:1; }
     #wf-headline { font-size:42px; font-weight:700; color:#1a0505; letter-spacing:-.02em; line-height:1.1; opacity:0; transition:opacity .4s .18s; max-width:340px; text-align:center; }
     #welcome-content.in #wf-headline { opacity:1; }
     #wf-quip { font-size:14px; color:#c08080; max-width:260px; text-align:center; line-height:1.55; padding:0 16px; opacity:0; transition:opacity .4s .3s; margin-top:6px; }
@@ -86,7 +84,6 @@
   <canvas id="berry-canvas"></canvas>
   <div id="welcome-content">
     <img class="wf-logo" src="/static/berry-clean-logo.png" alt="Berry Clean" onerror="this.style.display='none'"/>
-    <p id="wf-brand">Berry Clean</p>
     <p id="wf-headline"></p>
     <p id="wf-quip"></p>
   </div>
@@ -278,9 +275,9 @@ function runBerryAnimation(name) {
       drawBerry(ctx, b.x, b.y, b.size, b.rot, b.opacity);
     });
 
-    // After 3.5s, fade and show welcome
-    if (elapsed > 3500) {
-      canvas.style.transition = 'opacity .8s';
+    // After 3s, start crossfading berry canvas out while welcome fades in
+    if (elapsed > 3000) {
+      canvas.style.transition = 'opacity .5s';
       canvas.style.opacity = '0';
       showWelcome(name);
       return;
@@ -290,8 +287,8 @@ function runBerryAnimation(name) {
   }
   raf = requestAnimationFrame(draw);
 
-  // Navigate to dashboard after animation + welcome
-  setTimeout(() => { window.location.href = '/'; }, 6000);
+  // 5.25s total from start to dashboard
+  setTimeout(() => { window.location.href = '/'; }, 5250);
 }
 
 function showWelcome(name) {

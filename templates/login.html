@@ -167,11 +167,8 @@ function runBerryAnimation(name) {
   let W = canvas.width  = window.innerWidth;
   let H = canvas.height = window.innerHeight;
 
-  const GRAVITY    = 0.18;
-  const BOUNCE     = 0.45;
-  const FRICTION   = 0.96;
-  const FLOOR      = H - 20;
-  const BERRY_COUNT = 40;
+  const GRAVITY    = 0.08;
+  const BERRY_COUNT = 35;
 
   // Berry Clean outlined strawberry (matches the logo style)
   function drawBerry(ctx, x, y, size, rotation, opacity) {
@@ -231,17 +228,15 @@ function runBerryAnimation(name) {
     // Cluster slightly toward center-ish with spread
     const spawnX = (W * 0.2) + Math.random() * (W * 0.6);
     spawnQueue.push({
-      delay: i * 80 + Math.random() * 60,
+      delay: i * 55 + Math.random() * 40,
       x:        spawnX,
       y:        -30 - Math.random() * 60,
       size:     20 + Math.random() * 24,
-      vy:       1.2 + Math.random() * 1.8,
-      vx:       (Math.random() - 0.5) * 2.5,
+      vy:       0.8 + Math.random() * 1.2,
+      vx:       (Math.random() - 0.5) * 1.5,
       rot:      Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.05,
+      rotSpeed: (Math.random() - 0.5) * 0.03,
       opacity:  0.75 + Math.random() * 0.25,
-      bounces:  0,
-      grounded: false,
     });
   }
 
@@ -259,43 +254,32 @@ function runBerryAnimation(name) {
     }
 
     berries.forEach(b => {
-      if (b.grounded) {
-        drawBerry(ctx, b.x, b.y, b.size, b.rot, b.opacity);
-        return;
-      }
-
-      // Gravity
+      // Gravity — gentle drift down
       b.vy += GRAVITY;
       b.y  += b.vy;
       b.x  += b.vx;
       b.rot += b.rotSpeed;
 
-      // Bounce off floor
-      if (b.y + b.size * 0.4 >= FLOOR) {
-        b.y = FLOOR - b.size * 0.4;
-        b.vy = -Math.abs(b.vy) * BOUNCE;
-        b.vx *= FRICTION;
-        b.rotSpeed *= 0.7;
-        b.bounces++;
-
-        // After a few bounces, settle
-        if (Math.abs(b.vy) < 1.5 || b.bounces >= 4) {
-          b.vy = 0;
-          b.vx = 0;
-          b.rotSpeed = 0;
-          b.grounded = true;
+      // Soft collisions — bump off each other gently
+      berries.forEach(other => {
+        if (other === b) return;
+        const dx = other.x - b.x;
+        const dy = other.y - b.y;
+        const dist = Math.sqrt(dx*dx + dy*dy);
+        const minDist = (b.size + other.size) * 0.35;
+        if (dist < minDist && dist > 0) {
+          const push = (minDist - dist) * 0.02;
+          b.vx -= (dx/dist) * push;
+          b.vy -= (dy/dist) * push;
+          b.rotSpeed += (Math.random() - 0.5) * 0.01;
         }
-      }
-
-      // Bounce off walls
-      if (b.x < b.size * 0.3) { b.x = b.size * 0.3; b.vx = Math.abs(b.vx) * 0.5; }
-      if (b.x > W - b.size * 0.3) { b.x = W - b.size * 0.3; b.vx = -Math.abs(b.vx) * 0.5; }
+      });
 
       drawBerry(ctx, b.x, b.y, b.size, b.rot, b.opacity);
     });
 
-    // After 5s, start fading and show welcome
-    if (elapsed > 5000) {
+    // After 3.5s, fade and show welcome
+    if (elapsed > 3500) {
       canvas.style.transition = 'opacity .8s';
       canvas.style.opacity = '0';
       showWelcome(name);
@@ -307,7 +291,7 @@ function runBerryAnimation(name) {
   raf = requestAnimationFrame(draw);
 
   // Navigate to dashboard after animation + welcome
-  setTimeout(() => { window.location.href = '/'; }, 8000);
+  setTimeout(() => { window.location.href = '/'; }, 6000);
 }
 
 function showWelcome(name) {

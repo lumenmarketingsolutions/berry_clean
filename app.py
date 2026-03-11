@@ -139,6 +139,15 @@ def rows_by_header(worksheet):
         result.append(d)
     return result
 
+LAUNCH_DATE = "2026-03-11"   # campaign go-live date
+
+def is_live_campaign(campaign_name, row_date):
+    """A campaign is live if it's 'window washing' type AND on/after launch date."""
+    name_lower = str(campaign_name).lower()
+    is_ww = "window" in name_lower or "washing" in name_lower
+    date_ok = bool(row_date) and row_date >= LAUNCH_DATE
+    return is_ww and date_ok
+
 def fetch_meta_data():
     sheet = open_sheet()
     meta_rows = rows_by_header(sheet.worksheet("Meta_Performance_Log"))
@@ -147,13 +156,20 @@ def fetch_meta_data():
         try: return float(str(v).replace(",","").replace("$","") or 0)
         except: return 0.0
 
-    raw_meta = []
-    ad_map   = {}
+    raw_meta_live = []
+    raw_meta_past = []
+    ad_map_live   = {}
+    ad_map_past   = {}
     for r in meta_rows:
         ad_id = str(r.get("ad_id","")).strip()
         if not ad_id: continue
         row_date = parse_date(r.get("Date_SOT","") or r.get("reporting ends",""))
-        raw_meta.append({
+        campaign_name = r.get("campaign_name","").strip()
+        # If no campaign name set, default to Christmas Lights (all old data)
+        if not campaign_name:
+            campaign_name = "Christmas Lights"
+
+        row_data = {
             "date":        row_date,
             "spend":       round(num(r.get("spend",0)), 2),
             "impressions": int(num(r.get("impressions",0))),
@@ -161,11 +177,21 @@ def fetch_meta_data():
             "ctr":         round(num(r.get("ctr",0)), 4),
             "cpc":         round(num(r.get("cpc",0)), 2),
             "cpm":         round(num(r.get("cpm",0)), 2),
-        })
+            "campaign":    campaign_name,
+        }
+
+        live = is_live_campaign(campaign_name, row_date)
+        if live:
+            raw_meta_live.append(row_data)
+            ad_map = ad_map_live
+        else:
+            raw_meta_past.append(row_data)
+            ad_map = ad_map_past
+
         if ad_id not in ad_map:
             ad_map[ad_id] = {
                 "ad_id": ad_id, "ad_name": r.get("ad_name",""),
-                "campaign": r.get("campaign_name",""),
+                "campaign": campaign_name,
                 "impressions":0,"clicks":0,"spend":0.0,
                 "ctr_sum":0.0,"cpc_sum":0.0,"cpm_sum":0.0,"row_count":0
             }
@@ -178,34 +204,34 @@ def fetch_meta_data():
         a["cpm_sum"]     += num(r.get("cpm",0))
         a["row_count"]   += 1
 
-    ads = []
-    for ad_id, a in ad_map.items():
-        n = a["row_count"] or 1
-        ads.append({
-            "ad_id":       ad_id,
-            "ad_name":     a["ad_name"],
-            "campaign":    a["campaign"],
-            "impressions": a["impressions"],
-            "clicks":      a["clicks"],
-            "spend":       round(a["spend"], 2),
-            "ctr":         round(a["ctr_sum"]/n, 4),
-            "cpc":         round(a["cpc_sum"]/n, 2),
-            "cpm":         round(a["cpm_sum"]/n, 2),
-            "leads":       0,
-            "creative_url": "",
-        })
-    # Rank: leads desc, then CTR desc
-    ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
-    return ads, raw_meta
+    def build_ads(ad_map):
+        ads = []
+        for ad_id, a in ad_map.items():
+            n = a["row_count"] or 1
+            ads.append({
+                "ad_id":       ad_id,
+                "ad_name":     a["ad_name"],
+                "campaign":    a["campaign"],
+                "impressions": a["impressions"],
+                "clicks":      a["clicks"],
+                "spend":       round(a["spend"], 2),
+                "ctr":         round(a["ctr_sum"]/n, 4),
+                "cpc":         round(a["cpc_sum"]/n, 2),
+                "cpm":         round(a["cpm_sum"]/n, 2),
+                "leads":       0,
+                "creative_url": "",
+            })
+        ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
+        return ads
 
-LAUNCH_DATE = "2026-03-11"   # campaign go-live date
+    return build_ads(ad_map_live), raw_meta_live, build_ads(ad_map_past), raw_meta_past
 
 def fetch_leads():
-    """Return (all_leads, live_leads, raw_list) from Perspective_Leads."""
+    """Return (live_leads_list, past_leads_list) from Perspective_Leads."""
     sheet = open_sheet()
     ws = sheet.worksheet("Perspective_Leads")
     all_values = ws.get_all_values()
-    if not all_values: return 0, 0, []
+    if not all_values: return [], []
     headers = [h.strip().lower() for h in all_values[0]]
 
     def col(name): return next((i for i,h in enumerate(headers) if h==name), None)
@@ -214,7 +240,8 @@ def fetch_leads():
     utm_idx  = col("utm_content")
     created_idx = col("created_at")
 
-    seen, rows = set(), []
+    seen = set()
+    live_leads, past_leads = [], []
     for row in all_values[1:]:
         if not any(c.strip() for c in row): continue
         contact = row[id_idx].strip() if id_idx is not None and id_idx < len(row) else ""
@@ -223,43 +250,54 @@ def fetch_leads():
         raw_date = row[date_idx].strip() if date_idx is not None and date_idx < len(row) else ""
         created  = row[created_idx].strip() if created_idx is not None and created_idx < len(row) else ""
         utm      = row[utm_idx].strip()  if utm_idx  is not None and utm_idx  < len(row) else ""
-        # Use created_at date if date_SOT missing
         lead_date = parse_date(raw_date[:10]) or parse_date(created[:10])
-        rows.append({"id": contact, "date": lead_date, "utm": utm})
+        lead = {"id": contact, "date": lead_date, "utm": utm}
+        if lead_date and lead_date >= LAUNCH_DATE:
+            live_leads.append(lead)
+        else:
+            past_leads.append(lead)
 
-    live_leads = sum(1 for r in rows if r["date"] >= LAUNCH_DATE)
-    return len(rows), live_leads, rows
+    return live_leads, past_leads
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 @app.route("/")
 @login_required
 def dashboard():
     try:
-        ads, raw_meta                    = fetch_meta_data()
-        total_leads, live_leads, raw_leads = fetch_leads()
+        live_ads, raw_meta_live, past_ads, raw_meta_past = fetch_meta_data()
+        live_leads, past_leads = fetch_leads()
 
-        # Attach lead counts to ads via utm_content
-        utm_counts = defaultdict(int)
-        for r in raw_leads:
-            if r["utm"]: utm_counts[r["utm"]] += 1
-        for ad in ads:
-            ad["leads"] = utm_counts.get(ad["ad_id"], 0)
+        # Attach lead counts to live ads via utm_content → ad_id
+        utm_counts_live = defaultdict(int)
+        for r in live_leads:
+            if r["utm"]: utm_counts_live[r["utm"]] += 1
+        for ad in live_ads:
+            ad["leads"] = utm_counts_live.get(ad["ad_id"], 0)
+        live_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 
-        # Re-sort after attaching leads
-        ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
+        # Attach lead counts to past ads via utm_content → ad_id
+        utm_counts_past = defaultdict(int)
+        for r in past_leads:
+            if r["utm"]: utm_counts_past[r["utm"]] += 1
+        for ad in past_ads:
+            ad["leads"] = utm_counts_past.get(ad["ad_id"], 0)
+        past_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 
-        # Detect if campaign is live (any meta row from launch date or after)
-        is_live = any(r["date"] >= LAUNCH_DATE for r in raw_meta if r["date"])
+        # Live = any live meta data exists
+        is_live = len(raw_meta_live) > 0
 
         error = None
     except Exception as exc:
-        ads, raw_meta, raw_leads = [], [], []
-        total_leads, live_leads, is_live = 0, 0, False
+        live_ads, past_ads = [], []
+        raw_meta_live, raw_meta_past = [], []
+        live_leads, past_leads = [], []
+        is_live = False
         error = str(exc)
 
     return render_template("index.html",
-        ads=ads, total_leads=total_leads, live_leads=live_leads,
-        raw_meta=raw_meta, raw_leads=raw_leads,
+        live_ads=live_ads, past_ads=past_ads,
+        live_leads=live_leads, past_leads=past_leads,
+        raw_meta_live=raw_meta_live, raw_meta_past=raw_meta_past,
         is_live=is_live, launch_date=LAUNCH_DATE,
         error=error, user_name=current_user.name
     )

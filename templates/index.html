@@ -7,24 +7,25 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root { --red:#f4271f; --red-dark:#c41e18; --red-pale:#fff0f0; --red-border:#ffc8c6; --red-mist:#fff8f8; }
+    :root { --red:#f4271f; --red-dark:#c41e18; --red-pale:#fff0f0; --red-border:#ffc8c6; --red-mist:#fff8f8; --green:#16a34a; --green-pale:#f0fdf4; --green-border:#bbf7d0; }
     * { font-family:'Inter',sans-serif; }
-    body { background:#fff8f8; color:#111; }
+    body { background:#fafafa; color:#111; }
 
-    .card { background:#fff; border:1px solid var(--red-border); border-radius:16px; }
+    .card { background:#fff; border:1px solid #e5e7eb; border-radius:16px; }
     .card-hover { transition:box-shadow .2s,transform .2s; }
-    .card-hover:hover { box-shadow:0 4px 20px rgba(244,39,31,.10); transform:translateY(-1px); }
+    .card-hover:hover { box-shadow:0 4px 20px rgba(0,0,0,.06); transform:translateY(-1px); }
 
-    .section-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#c08080; margin-bottom:12px; }
-    .metric-value  { font-size:26px; font-weight:700; color:var(--red); line-height:1; }
-    .metric-label  { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#c08080; }
+    .section-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#9ca3af; margin-bottom:12px; }
+    .metric-value  { font-size:26px; font-weight:700; color:#111; line-height:1; }
+    .metric-value-green { font-size:26px; font-weight:700; color:var(--green); line-height:1; }
+    .metric-label  { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#9ca3af; }
     .metric-sub    { font-size:12px; color:#999; margin-top:3px; }
 
     /* Live badge */
     .badge-live     { display:inline-flex; align-items:center; gap:8px; border-radius:999px; font-size:13px; font-weight:600; letter-spacing:.04em; padding:7px 16px; }
-    .badge-live-on  { background:#f0fff4; border:1px solid #86efac; color:#16a34a; }
+    .badge-live-on  { background:var(--green-pale); border:1px solid var(--green-border); color:var(--green); }
     .badge-live-off { background:#fefce8; border:1px solid #fde047; color:#854d0e; }
-    .live-dot-green  { width:9px; height:9px; border-radius:50%; background:#16a34a; animation:pulse 2s infinite; flex-shrink:0; }
+    .live-dot-green  { width:9px; height:9px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; flex-shrink:0; }
     .live-dot-yellow { width:9px; height:9px; border-radius:50%; background:#eab308; animation:pulse 1.4s infinite; flex-shrink:0; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
@@ -32,56 +33,62 @@
     .date-filter-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
     .date-filter-wrap::-webkit-scrollbar { display:none; }
     .date-filter { display:flex; gap:6px; width:max-content; }
-    .df-pill { padding:5px 13px; border-radius:999px; font-size:12px; font-weight:500; color:#c08080; border:1px solid var(--red-border); background:#fff; cursor:pointer; transition:all .15s; white-space:nowrap; }
-    .df-pill:hover  { background:var(--red-pale); color:var(--red); }
-    .df-pill.active { background:var(--red); color:#fff; border-color:var(--red); }
-    #date-popover { display:none; position:absolute; z-index:50; background:#fff; border:1px solid var(--red-border); border-radius:16px; padding:16px 18px; box-shadow:0 8px 32px rgba(244,39,31,.12); margin-top:6px; min-width:260px; }
+    .df-pill { padding:5px 13px; border-radius:999px; font-size:12px; font-weight:500; color:#9ca3af; border:1px solid #e5e7eb; background:#fff; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    .df-pill:hover  { background:#f3f4f6; color:#111; }
+    .df-pill.active { background:#111; color:#fff; border-color:#111; }
+    #date-popover { display:none; position:absolute; z-index:50; background:#fff; border:1px solid #e5e7eb; border-radius:16px; padding:16px 18px; box-shadow:0 8px 32px rgba(0,0,0,.08); margin-top:6px; min-width:260px; }
     #date-popover.show { display:block; }
-    #date-popover label { font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#c08080; display:block; margin-bottom:5px; }
-    #date-popover input[type=date] { width:100%; padding:8px 10px; border:1px solid var(--red-border); border-radius:10px; font-size:13px; color:#111; outline:none; font-family:'Inter',sans-serif; }
-    #date-popover input[type=date]:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(244,39,31,.1); }
-    .df-apply { width:100%; margin-top:12px; padding:8px; border-radius:10px; background:var(--red); color:#fff; font-size:13px; font-weight:600; border:none; cursor:pointer; }
+    #date-popover label { font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#9ca3af; display:block; margin-bottom:5px; }
+    #date-popover input[type=date] { width:100%; padding:8px 10px; border:1px solid #e5e7eb; border-radius:10px; font-size:13px; color:#111; outline:none; font-family:'Inter',sans-serif; }
+    #date-popover input[type=date]:focus { border-color:#111; box-shadow:0 0 0 3px rgba(0,0,0,.06); }
+    .df-apply { width:100%; margin-top:12px; padding:8px; border-radius:10px; background:#111; color:#fff; font-size:13px; font-weight:600; border:none; cursor:pointer; }
 
     /* Zero-state bubble */
-    .thought-bubble { position:relative; margin-top:8px; display:inline-flex; align-items:center; gap:6px; background:var(--red-pale); border:1px solid var(--red-border); border-radius:12px; padding:5px 10px; font-size:11px; color:#c08080; font-weight:500; animation:floatBubble 3s ease-in-out infinite; white-space:nowrap; }
-    .thought-bubble::before { content:''; position:absolute; bottom:-7px; left:14px; width:7px; height:7px; background:var(--red-pale); border-right:1px solid var(--red-border); border-bottom:1px solid var(--red-border); border-radius:0 0 3px 0; transform:rotate(45deg); }
-    .bubble-dot { width:5px; height:5px; border-radius:50%; background:var(--red); opacity:.5; flex-shrink:0; }
+    .thought-bubble { position:relative; margin-top:8px; display:inline-flex; align-items:center; gap:6px; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:12px; padding:5px 10px; font-size:11px; color:#9ca3af; font-weight:500; animation:floatBubble 3s ease-in-out infinite; white-space:nowrap; }
+    .thought-bubble::before { content:''; position:absolute; bottom:-7px; left:14px; width:7px; height:7px; background:#f3f4f6; border-right:1px solid #e5e7eb; border-bottom:1px solid #e5e7eb; border-radius:0 0 3px 0; transform:rotate(45deg); }
+    .bubble-dot { width:5px; height:5px; border-radius:50%; background:#9ca3af; opacity:.5; flex-shrink:0; }
     @keyframes floatBubble { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
 
     /* Ad list */
-    .ad-list-row { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid #fff0f0; gap:12px; }
+    .ad-list-row { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid #f3f4f6; gap:12px; }
     .ad-list-row:last-child { border-bottom:none; }
-    .ad-rank-num { width:24px; font-size:13px; font-weight:600; color:#ccc; flex-shrink:0; text-align:center; }
+    .ad-rank-num { width:24px; font-size:13px; font-weight:600; color:#d1d5db; flex-shrink:0; text-align:center; }
     .ad-stat { text-align:center; min-width:52px; }
     .ad-stat-val { font-size:13px; font-weight:600; color:#111; }
     .ad-stat-lbl { font-size:10px; color:#bbb; text-transform:uppercase; letter-spacing:.05em; }
-    .ctr-high { background:#fff0f0; color:var(--red); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
+    .ctr-high { background:var(--green-pale); color:var(--green); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
     .ctr-mid  { background:#fefce8; color:#854d0e; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
     .ctr-low  { background:#f5f5f5; color:#9ca3af; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
-    .leads-badge { background:#fff0f0; border:1px solid var(--red-border); color:var(--red); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:700; }
+    .leads-badge { background:var(--green-pale); border:1px solid var(--green-border); color:var(--green); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:700; }
 
     /* Mobile */
     @media (max-width:767px) { .desktop-list{display:none;} .mobile-list{display:block;} }
     @media (min-width:768px) { .desktop-list{display:block;} .mobile-list{display:none;} }
     .chevron { transition:transform .2s; font-size:11px; color:#ddd; margin-left:auto; flex-shrink:0; }
     .chevron.open { transform:rotate(180deg); }
-    .m-ad-row { display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer; border-bottom:1px solid #fff0f0; transition:background .15s; min-width:0; }
+    .m-ad-row { display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer; border-bottom:1px solid #f3f4f6; transition:background .15s; min-width:0; }
     .m-ad-row p { min-width:0; }
-    .m-ad-row:active { background:var(--red-pale); }
-    .m-ad-details { display:none; padding:10px 14px 12px 46px; border-bottom:1px solid #fff0f0; background:#fff8f8; }
+    .m-ad-row:active { background:#f9fafb; }
+    .m-ad-details { display:none; padding:10px 14px 12px 46px; border-bottom:1px solid #f3f4f6; background:#fafafa; }
     .m-ad-details.open { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-    .mini-stat { background:var(--red-mist); border:1px solid var(--red-border); border-radius:10px; padding:8px; text-align:center; }
+    .mini-stat { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:8px; text-align:center; }
 
-    /* Campaign banner */
-    #christmas-banner { display:none; background:linear-gradient(135deg,#1a0505,#3d0c0c); border-radius:16px; padding:16px 20px; margin-bottom:4px; }
+    /* Past campaign banner */
+    #past-banner { display:none; background:linear-gradient(135deg,#1a0505,#3d0c0c); border-radius:16px; padding:16px 20px; margin-bottom:4px; }
+
+    /* Construction banner */
+    .construction-banner { border-radius:12px; padding:10px 14px; margin-bottom:4px; border:1px solid #fde68a; background:#fffbeb; cursor:pointer; transition:all .2s; }
+    .construction-banner:hover { background:#fef9c3; }
+    .construction-details { display:none; margin-top:8px; padding-top:8px; border-top:1px solid #fde68a; }
+    .construction-details.open { display:block; }
 
     /* Creative modal */
     #creative-modal { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:20px; }
     #creative-modal.show { display:flex; }
     .modal-card { background:#fff; border-radius:20px; padding:24px; max-width:480px; width:100%; }
-    .modal-img { width:100%; border-radius:12px; object-fit:cover; max-height:300px; border:1px solid var(--red-border); }
-    .view-creative-btn { font-size:11px; font-weight:600; color:var(--red); background:var(--red-pale); border:1px solid var(--red-border); border-radius:999px; padding:3px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background .15s; }
-    .view-creative-btn:hover { background:#ffd8d8; }
+    .modal-img { width:100%; border-radius:12px; object-fit:cover; max-height:300px; border:1px solid #e5e7eb; }
+    .view-creative-btn { font-size:11px; font-weight:600; color:#111; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:999px; padding:3px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background .15s; }
+    .view-creative-btn:hover { background:#e5e7eb; }
 
     /* Sauce advisor */
     #sauce-btn {
@@ -93,23 +100,23 @@
       box-shadow:0 2px 12px rgba(0,0,0,.08);
       transition:all .2s; opacity:.6;
     }
-    #sauce-btn:hover { opacity:1; border-color:var(--red-border); color:var(--red); box-shadow:0 4px 20px rgba(244,39,31,.15); }
+    #sauce-btn:hover { opacity:1; border-color:var(--green-border); color:var(--green); box-shadow:0 4px 20px rgba(22,163,74,.15); }
     #sauce-panel {
       display:none; position:fixed; bottom:70px; right:24px; z-index:400;
       width:320px; max-width:calc(100vw - 48px);
-      background:#fff; border:1px solid var(--red-border);
-      border-radius:20px; box-shadow:0 8px 40px rgba(244,39,31,.12);
+      background:#fff; border:1px solid #e5e7eb;
+      border-radius:20px; box-shadow:0 8px 40px rgba(0,0,0,.1);
       overflow:hidden;
     }
     #sauce-panel.show { display:block; animation:slideUp .25s ease; }
     @keyframes slideUp { from{transform:translateY(12px);opacity:0} to{transform:translateY(0);opacity:1} }
     .sauce-header { background:var(--red); padding:14px 16px; display:flex; align-items:center; gap:10px; }
     .sauce-avatar { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:16px; }
-    .sauce-insight { padding:12px 16px; border-bottom:1px solid #fff0f0; font-size:13px; color:#333; line-height:1.5; }
+    .sauce-insight { padding:12px 16px; border-bottom:1px solid #f3f4f6; font-size:13px; color:#333; line-height:1.5; }
     .sauce-insight:last-child { border-bottom:none; }
     .sauce-insight-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
-    .sauce-win   .sauce-insight-label { color:#16a34a; }
-    .sauce-info  .sauce-insight-label { color:var(--red); }
+    .sauce-win   .sauce-insight-label { color:var(--green); }
+    .sauce-info  .sauce-insight-label { color:#111; }
     .sauce-soon  .sauce-insight-label { color:#d97706; }
 
     /* Welcome screen */
@@ -121,9 +128,9 @@
 <!-- Welcome screen -->
 <div id="welcome-screen">
   <img src="/static/berry-clean-logo.png" style="height:48px;margin-bottom:8px;" onerror="this.style.display='none'"/>
-  <p style="font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#c08080;">Berry Clean</p>
+  <p style="font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#9ca3af;">Berry Clean</p>
   <p id="welcome-name" style="font-size:46px;font-weight:700;color:#111;letter-spacing:-.02em;line-height:1.1;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .5s;max-width:340px;text-align:center;">Welcome, {{ user_name }}</p>
-  <p id="welcome-sub" style="font-size:14px;color:#c08080;opacity:0;transition:opacity .5s .2s;max-width:280px;text-align:center;line-height:1.5;padding:0 16px;margin-top:6px;"></p>
+  <p id="welcome-sub" style="font-size:14px;color:#9ca3af;opacity:0;transition:opacity .5s .2s;max-width:280px;text-align:center;line-height:1.5;padding:0 16px;margin-top:6px;"></p>
 </div>
 
 <!-- Creative modal -->
@@ -131,14 +138,14 @@
   <div class="modal-card">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
       <div>
-        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c08080;">Ad Creative</p>
+        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;">Ad Creative</p>
         <p id="modal-ad-name" style="font-size:16px;font-weight:600;color:#111;margin-top:2px;"></p>
       </div>
-      <button onclick="document.getElementById('creative-modal').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#ccc;padding:4px 8px;">✕</button>
+      <button onclick="document.getElementById('creative-modal').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#ccc;padding:4px 8px;">&#10005;</button>
     </div>
     <img id="modal-img" class="modal-img" src="" alt="Ad Creative"/>
-    <div style="margin-top:12px;padding:10px;background:var(--red-pale);border-radius:10px;border:1px solid var(--red-border);">
-      <p style="font-size:11px;color:#c08080;font-weight:500;">Creative not yet linked</p>
+    <div style="margin-top:12px;padding:10px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb;">
+      <p style="font-size:11px;color:#9ca3af;font-weight:500;">Creative not yet linked</p>
       <p style="font-size:12px;color:#999;margin-top:2px;">Add a Google Drive image URL to populate this creative.</p>
     </div>
   </div>
@@ -147,27 +154,27 @@
 <!-- Sauce advisor panel -->
 <div id="sauce-panel">
   <div class="sauce-header">
-    <div class="sauce-avatar">🍓</div>
+    <div class="sauce-avatar">&#127827;</div>
     <div>
       <p style="font-size:13px;font-weight:700;color:#fff;">Sauce</p>
       <p style="font-size:11px;color:rgba(255,255,255,.7);">Your analytics advisor</p>
     </div>
-    <button onclick="toggleSauce()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.7);font-size:18px;padding:0 4px;">✕</button>
+    <button onclick="toggleSauce()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.7);font-size:18px;padding:0 4px;">&#10005;</button>
   </div>
   <div id="sauce-insights"></div>
 </div>
 <button id="sauce-btn" onclick="toggleSauce()" title="Ask Sauce">?</button>
 
 <!-- Header -->
-<header style="background:#fff;border-bottom:1px solid var(--red-border);" class="px-5 py-3 flex items-center justify-between sticky top-0 z-50">
+<header style="background:#fff;border-bottom:1px solid #e5e7eb;" class="px-5 py-3 flex items-center justify-between sticky top-0 z-50">
   <div class="flex items-center gap-3">
     <img src="/static/berry-clean-logo.png" style="height:32px;" onerror="this.style.display='none'"/>
     <div>
-      <p style="font-size:11px;color:#c08080;font-weight:500;">Treasure Valley</p>
+      <p style="font-size:11px;color:#9ca3af;font-weight:500;">Treasure Valley</p>
     </div>
   </div>
   <div class="flex items-center gap-3">
-    <a href="/logout" style="font-size:11px;color:#e0b0b0;text-decoration:none;padding:4px 10px;border:1px solid #ffd0ce;border-radius:999px;">Sign out</a>
+    <a href="/logout" style="font-size:11px;color:#9ca3af;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:999px;">Sign out</a>
   </div>
 </header>
 
@@ -179,56 +186,82 @@
   </div>
   {% endif %}
 
+  <!-- Data injection -->
+  <script>
+    const RAW_META_LIVE  = {{ raw_meta_live  | tojson }};
+    const RAW_META_PAST  = {{ raw_meta_past  | tojson }};
+    const RAW_LEADS_LIVE = {{ live_leads     | tojson }};
+    const RAW_LEADS_PAST = {{ past_leads     | tojson }};
+    const IS_LIVE        = {{ is_live | tojson }};
+    const LAUNCH_DATE    = "{{ launch_date }}";
+    const LIVE_ADS       = {{ live_ads  | tojson }};
+    const PAST_ADS       = {{ past_ads  | tojson }};
+
+    let VIEW_MODE = 'live'; // 'live' or 'past'
+  </script>
+
   <!-- Campaign switcher + live badge -->
   <div class="flex items-center justify-between flex-wrap gap-3">
     <div id="live-badge">
       {% if is_live %}
-      <span class="badge-live badge-live-on"><span class="live-dot-green"></span>Live</span>
+      <span class="badge-live badge-live-on"><span class="live-dot-green"></span>Window Washing &mdash; Live</span>
       {% else %}
-      <span class="badge-live badge-live-off"><span class="live-dot-yellow"></span>Launch in Progress</span>
+      <span class="badge-live badge-live-off"><span class="live-dot-yellow"></span>Window Washing &mdash; Building</span>
       {% endif %}
     </div>
-    <button id="past-campaigns-btn" onclick="showChristmas()" style="font-size:12px;font-weight:600;color:#c08080;background:var(--red-pale);border:1px solid var(--red-border);border-radius:999px;padding:6px 14px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='#c08080'">
-      🎄 View Past Campaigns
+    <button id="past-campaigns-btn" onclick="showPast()" style="font-size:12px;font-weight:600;color:#9ca3af;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:6px 14px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
+      View Past Campaigns
     </button>
   </div>
 
-  <!-- Christmas banner (hidden by default) -->
-  <div id="christmas-banner">
-    <div class="flex items-center justify-between">
-      <div>
-        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);">Viewing Past Campaign</p>
-        <p style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">🎄 Christmas Lights 2025</p>
-        <p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">November – December 2025</p>
+  <!-- Construction status banner (collapsible) -->
+  <div id="construction-banner" style="display:{% if not is_live %}block{% else %}none{% endif %};">
+    <div class="construction-banner" onclick="toggleConstruction()">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:16px;">&#128679;</span>
+          <p style="font-size:13px;font-weight:600;color:#92400e;">Window Washing is still under construction</p>
+        </div>
+        <span id="construction-chevron" style="font-size:10px;color:#d97706;transition:transform .2s;">&#9660;</span>
       </div>
-      <button onclick="showLive()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">← Back to Live</button>
+      <div class="construction-details" id="construction-details">
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:13px;">&#9989;</span>
+            <p style="font-size:12px;color:#92400e;">Foundation poured &mdash; campaign structure is set</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:13px;">&#9989;</span>
+            <p style="font-size:12px;color:#92400e;">Framing up &mdash; creatives and copy loaded</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:13px;">&#128679;</span>
+            <p style="font-size:12px;color:#b45309;">Putting the roof on &mdash; final review before going live</p>
+          </div>
+          <p style="font-size:11px;color:#d97706;margin-top:4px;">Checking for updates every 5 minutes...</p>
+        </div>
+      </div>
     </div>
   </div>
 
-  {% if ads %}
-  {% set total_spend       = ads | sum(attribute='spend') %}
-  {% set total_impressions = ads | sum(attribute='impressions') %}
-  {% set total_clicks      = ads | sum(attribute='clicks') %}
-  {% set avg_ctr           = (ads | sum(attribute='ctr') / ads|length) %}
-  {% set avg_cpc           = (ads | sum(attribute='cpc') / ads|length) %}
-  {% set avg_cpm           = (ads | sum(attribute='cpm') / ads|length) %}
+  <!-- Past campaign banner (hidden by default) -->
+  <div id="past-banner">
+    <div class="flex items-center justify-between">
+      <div>
+        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);">Viewing Past Campaign</p>
+        <p style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">&#127876; Christmas Lights 2025</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">November &ndash; December 2025</p>
+      </div>
+      <button onclick="showLive()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">&larr; Back to Live</button>
+    </div>
+  </div>
 
-  <script>
-    const RAW_META    = {{ raw_meta    | tojson }};
-    const RAW_LEADS   = {{ raw_leads   | tojson }};
-    const IS_LIVE     = {{ is_live | tojson }};
-    const LAUNCH_DATE = "{{ launch_date }}";
-    const TOTAL_LEADS = {{ total_leads }};
-    const LIVE_LEADS  = {{ live_leads }};
-    const ADS_DATA    = {{ ads | tojson }};
-  </script>
-
-  <!-- KPI cards -->
+  <!-- KPI section -->
   <div id="kpi-section">
     <!-- Date filter -->
     <section style="position:relative;" class="mb-4">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin-bottom:10px;">
-        <span class="section-label" style="margin-bottom:0;flex-shrink:0;">Overview</span>
+        <span class="section-label" style="margin-bottom:0;">Overview</span>
       </div>
       <div class="date-filter-wrap">
         <div class="date-filter">
@@ -246,128 +279,66 @@
       </div>
     </section>
 
-    <!-- Live campaign zero state message -->
-    <div id="launch-msg" style="display:{% if not is_live %}block{% else %}none{% endif %};">
-      <div class="card p-5 mb-4" style="border-color:#fde68a;background:#fffbeb;">
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <span style="font-size:24px;">🚀</span>
-          <div>
-            <p style="font-size:14px;font-weight:600;color:#92400e;">Campaign is warming up</p>
-            <p style="font-size:13px;color:#b45309;margin-top:3px;line-height:1.5;">Your new campaign hasn't logged its first data point yet. The dashboard is watching — the moment Meta sends performance data, this goes green and live.</p>
-            <p style="font-size:12px;color:#d97706;margin-top:8px;">Checking every 5 minutes...</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
       <div class="card card-hover p-4">
         <p class="metric-label">Fresh Leads</p>
-        <p class="metric-value mt-2" id="kpi-leads">{{ total_leads }}</p>
-        <div id="kpi-leads-sub">
-          {% if total_leads == 0 %}<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>
-          {% else %}<p class="metric-sub">Inbound inquiries</p>{% endif %}
-        </div>
+        <p class="metric-value-green mt-2" id="kpi-leads">0</p>
+        <div id="kpi-leads-sub"><div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div></div>
       </div>
       <div class="card card-hover p-4">
         <p class="metric-label">Total Spend</p>
-        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-spend">${{ '{:,.2f}'.format(total_spend) }}</p>
+        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-spend">$0.00</p>
         <p class="metric-sub">Meta ads</p>
       </div>
       <div class="card card-hover p-4">
         <p class="metric-label">Impressions</p>
-        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-impressions">{{ '{:,}'.format(total_impressions) }}</p>
+        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-impressions">0</p>
         <p class="metric-sub">Total views</p>
       </div>
       <div class="card card-hover p-4">
         <p class="metric-label">Clicks</p>
-        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-clicks">{{ '{:,}'.format(total_clicks) }}</p>
+        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-clicks">0</p>
         <p class="metric-sub">Link clicks</p>
       </div>
     </div>
     <div class="grid grid-cols-3 gap-3">
       <div class="card card-hover p-4">
         <p class="metric-label">Avg CTR</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-ctr">{{ '{:.2f}'.format(avg_ctr) }}%</p>
+        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-ctr">0.00%</p>
         <p class="metric-sub">Click-through rate</p>
       </div>
       <div class="card card-hover p-4">
         <p class="metric-label">Avg CPC</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpc">${{ '{:.2f}'.format(avg_cpc) }}</p>
+        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpc">$0.00</p>
         <p class="metric-sub">Cost per click</p>
       </div>
       <div class="card card-hover p-4">
         <p class="metric-label">Avg CPM</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpm">${{ '{:.2f}'.format(avg_cpm) }}</p>
+        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpm">$0.00</p>
         <p class="metric-sub">Per 1k impressions</p>
       </div>
     </div>
   </div>
 
   <!-- Ad Rankings -->
-  <section class="card overflow-hidden">
-    <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--red-border);">
+  <section class="card overflow-hidden" id="ad-rankings-section">
+    <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
       <p class="section-label" style="margin-bottom:0;">Ad Rankings</p>
-      <span class="text-xs" style="color:#bbb;">{{ ads|length }} ads · leads first, then CTR</span>
+      <span class="text-xs" style="color:#bbb;" id="ad-rankings-meta">leads first, then CTR</span>
     </div>
 
-    <!-- Desktop -->
-    <div class="desktop-list">
-      {% for ad in ads %}
-      <div class="ad-list-row px-5">
-        <span class="ad-rank-num" style="{% if loop.index==1 %}color:#d4af37{% elif loop.index==2 %}color:#a8a9ad{% elif loop.index==3 %}color:#cd7f32{% endif %}">{{ loop.index }}</span>
-        <div style="flex:1;min-width:0;">
-          <p class="text-sm font-semibold truncate" style="color:#111;">{{ ad.ad_name or '—' }}</p>
-          <p class="text-xs truncate" style="color:#bbb;">{{ ad.campaign or '' }}</p>
-        </div>
-        {% if ad.leads > 0 %}
-        <span class="leads-badge">{{ ad.leads }} leads</span>
-        {% endif %}
-        <div class="ad-stat"><p class="ad-stat-val">${{ '{:.0f}'.format(ad.spend) }}</p><p class="ad-stat-lbl">Spend</p></div>
-        <div class="ad-stat"><p class="ad-stat-val">{{ '{:,}'.format(ad.impressions) }}</p><p class="ad-stat-lbl">Impr.</p></div>
-        <div class="ad-stat"><p class="ad-stat-val">{{ '{:,}'.format(ad.clicks) }}</p><p class="ad-stat-lbl">Clicks</p></div>
-        <div>
-          <span class="ctr-{% if ad.ctr >= 5 %}high{% elif ad.ctr >= 2 %}mid{% else %}low{% endif %}">
-            {{ '{:.2f}'.format(ad.ctr) }}% CTR
-          </span>
-        </div>
-        <button class="view-creative-btn" onclick="openCreative('{{ ad.ad_id }}','{{ ad.ad_name | e }}')">View Creative</button>
+    <div id="ad-rankings-content">
+      <div class="px-6 py-12 text-center" style="color:#bbb;">
+        <p style="font-size:14px;">No live ad data yet</p>
+        <p style="font-size:12px;margin-top:4px;">Rankings will appear once Window Washing goes live</p>
       </div>
-      {% endfor %}
-    </div>
-
-    <!-- Mobile -->
-    <div class="mobile-list">
-      {% for ad in ads %}
-      <div class="m-ad-row" onclick="togglePanel('a{{ loop.index }}')">
-        <span class="ad-rank-num" style="{% if loop.index==1 %}color:#d4af37{% elif loop.index==2 %}color:#a8a9ad{% elif loop.index==3 %}color:#cd7f32{% endif %}">{{ loop.index }}</span>
-        <p class="text-sm font-medium flex-1 truncate" style="color:#111;">{{ ad.ad_name or '—' }}</p>
-        {% if ad.leads > 0 %}<span class="leads-badge" style="flex-shrink:0;font-size:10px;">{{ ad.leads }}🍓</span>{% endif %}
-        <span class="chevron" id="a{{ loop.index }}-chev">▼</span>
-      </div>
-      <div class="m-ad-details" id="a{{ loop.index }}">
-        <div class="mini-stat"><p class="ad-stat-lbl">Leads</p><p class="ad-stat-val" style="color:var(--red);">{{ ad.leads }}</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">Spend</p><p class="ad-stat-val">${{ '{:.0f}'.format(ad.spend) }}</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">CTR</p><p class="ad-stat-val">{{ '{:.2f}'.format(ad.ctr) }}%</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">Clicks</p><p class="ad-stat-val">{{ '{:,}'.format(ad.clicks) }}</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">Impr.</p><p class="ad-stat-val">{{ '{:,}'.format(ad.impressions) }}</p></div>
-        <div class="mini-stat" style="cursor:pointer;" onclick="openCreative('{{ ad.ad_id }}','{{ ad.ad_name | e }}')">
-          <p class="ad-stat-lbl">Creative</p>
-          <p style="font-size:12px;color:var(--red);font-weight:600;">View →</p>
-        </div>
-      </div>
-      {% endfor %}
     </div>
   </section>
 
-  {% else %}
-  <div class="card px-6 py-16 text-center" style="color:#bbb;">No ad data found.</div>
-  {% endif %}
-
 </main>
 
-<footer style="border-top:1px solid var(--red-border);background:#fff;" class="px-5 py-4 mt-8 text-center">
-  <p class="text-xs" style="color:#ddd;">Berry Clean &copy; 2026 · Powered by Lumen</p>
+<footer style="border-top:1px solid #e5e7eb;background:#fff;" class="px-5 py-4 mt-8 text-center">
+  <p class="text-xs" style="color:#ddd;">Berry Clean &copy; 2026 &middot; Powered by Lumen</p>
 </footer>
 
 <script>
@@ -397,24 +368,112 @@
   setTimeout(()=>{el.style.display='none';},2600);
 })();
 
-// ── Campaign switcher ───────────────────────────────────────────
-function showChristmas() {
-  document.getElementById('christmas-banner').style.display='block';
-  document.getElementById('past-campaigns-btn').style.display='none';
-  document.getElementById('launch-msg').style.display='none';
-  // Show all historical data (max filter)
-  setFilterSilent(null, null);
-  document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
-  document.querySelector('.df-pill:last-child').classList.add('active');
+// ── Construction banner toggle ───────────────────────────────────
+function toggleConstruction() {
+  const d = document.getElementById('construction-details');
+  const c = document.getElementById('construction-chevron');
+  const isOpen = d.classList.contains('open');
+  d.classList.toggle('open', !isOpen);
+  c.style.transform = isOpen ? '' : 'rotate(180deg)';
 }
-function showLive() {
-  document.getElementById('christmas-banner').style.display='none';
-  document.getElementById('past-campaigns-btn').style.display='';
-  if(!IS_LIVE) document.getElementById('launch-msg').style.display='block';
-  // Reset to max
-  setFilterSilent(null, null);
+
+// ── Campaign switcher ───────────────────────────────────────────
+function showPast() {
+  VIEW_MODE = 'past';
+  document.getElementById('past-banner').style.display='block';
+  document.getElementById('past-campaigns-btn').style.display='none';
+  document.getElementById('construction-banner').style.display='none';
+  document.getElementById('live-badge').style.display='none';
+  // Reset filter to max and render past data
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.df-pill')[4].classList.add('active');
+  updateKPIs(null, null);
+  renderAds(PAST_ADS);
+}
+
+function showLive() {
+  VIEW_MODE = 'live';
+  document.getElementById('past-banner').style.display='none';
+  document.getElementById('past-campaigns-btn').style.display='';
+  document.getElementById('live-badge').style.display='';
+  if(!IS_LIVE) document.getElementById('construction-banner').style.display='block';
+  // Reset filter to max and render live data
+  document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.df-pill')[4].classList.add('active');
+  updateKPIs(null, null);
+  renderAds(LIVE_ADS);
+}
+
+// ── Render ad rankings ──────────────────────────────────────────
+function renderAds(ads) {
+  const container = document.getElementById('ad-rankings-content');
+  const meta = document.getElementById('ad-rankings-meta');
+
+  if (!ads || ads.length === 0) {
+    meta.textContent = '';
+    const mode = VIEW_MODE === 'live' ? 'Window Washing goes live' : 'this campaign';
+    container.innerHTML = `<div class="px-6 py-12 text-center" style="color:#bbb;">
+      <p style="font-size:14px;">No ad data yet</p>
+      <p style="font-size:12px;margin-top:4px;">Rankings will appear once ${mode} has data</p>
+    </div>`;
+    return;
+  }
+
+  meta.textContent = ads.length + ' ads \u00b7 leads first, then CTR';
+
+  // Desktop
+  let desktopHTML = '<div class="desktop-list">';
+  ads.forEach((ad, i) => {
+    const rank = i + 1;
+    const rankColor = rank===1?'color:#d4af37':rank===2?'color:#a8a9ad':rank===3?'color:#cd7f32':'';
+    const ctrClass = ad.ctr>=5?'high':ad.ctr>=2?'mid':'low';
+    const leadsBadge = ad.leads>0 ? `<span class="leads-badge">${ad.leads} leads</span>` : '';
+    desktopHTML += `
+      <div class="ad-list-row px-5">
+        <span class="ad-rank-num" style="${rankColor}">${rank}</span>
+        <div style="flex:1;min-width:0;">
+          <p class="text-sm font-semibold truncate" style="color:#111;">${ad.ad_name||'\u2014'}</p>
+          <p class="text-xs truncate" style="color:#bbb;">${ad.campaign||''}</p>
+        </div>
+        ${leadsBadge}
+        <div class="ad-stat"><p class="ad-stat-val">$${Math.round(ad.spend)}</p><p class="ad-stat-lbl">Spend</p></div>
+        <div class="ad-stat"><p class="ad-stat-val">${ad.impressions.toLocaleString()}</p><p class="ad-stat-lbl">Impr.</p></div>
+        <div class="ad-stat"><p class="ad-stat-val">${ad.clicks.toLocaleString()}</p><p class="ad-stat-lbl">Clicks</p></div>
+        <div><span class="ctr-${ctrClass}">${ad.ctr.toFixed(2)}% CTR</span></div>
+        <button class="view-creative-btn" onclick="openCreative('${ad.ad_id}','${(ad.ad_name||'').replace(/'/g,"\\'")}')">View Creative</button>
+      </div>`;
+  });
+  desktopHTML += '</div>';
+
+  // Mobile
+  let mobileHTML = '<div class="mobile-list">';
+  ads.forEach((ad, i) => {
+    const rank = i + 1;
+    const id = 'ad-' + VIEW_MODE + '-' + rank;
+    const rankColor = rank===1?'color:#d4af37':rank===2?'color:#a8a9ad':rank===3?'color:#cd7f32':'';
+    const leadsBadge = ad.leads>0 ? `<span class="leads-badge" style="flex-shrink:0;font-size:10px;">${ad.leads}&#127827;</span>` : '';
+    mobileHTML += `
+      <div class="m-ad-row" onclick="togglePanel('${id}')">
+        <span class="ad-rank-num" style="${rankColor}">${rank}</span>
+        <p class="text-sm font-medium flex-1 truncate" style="color:#111;">${ad.ad_name||'\u2014'}</p>
+        ${leadsBadge}
+        <span class="chevron" id="${id}-chev">&#9660;</span>
+      </div>
+      <div class="m-ad-details" id="${id}">
+        <div class="mini-stat"><p class="ad-stat-lbl">Leads</p><p class="ad-stat-val" style="color:var(--green);">${ad.leads}</p></div>
+        <div class="mini-stat"><p class="ad-stat-lbl">Spend</p><p class="ad-stat-val">$${Math.round(ad.spend)}</p></div>
+        <div class="mini-stat"><p class="ad-stat-lbl">CTR</p><p class="ad-stat-val">${ad.ctr.toFixed(2)}%</p></div>
+        <div class="mini-stat"><p class="ad-stat-lbl">Clicks</p><p class="ad-stat-val">${ad.clicks.toLocaleString()}</p></div>
+        <div class="mini-stat"><p class="ad-stat-lbl">Impr.</p><p class="ad-stat-val">${ad.impressions.toLocaleString()}</p></div>
+        <div class="mini-stat" style="cursor:pointer;" onclick="openCreative('${ad.ad_id}','${(ad.ad_name||'').replace(/'/g,"\\'")}')">
+          <p class="ad-stat-lbl">Creative</p>
+          <p style="font-size:12px;color:var(--red);font-weight:600;">View &rarr;</p>
+        </div>
+      </div>`;
+  });
+  mobileHTML += '</div>';
+
+  container.innerHTML = desktopHTML + mobileHTML;
 }
 
 // ── Creative modal ──────────────────────────────────────────────
@@ -439,24 +498,35 @@ function dateRange(preset){
 }
 function filterRows(rows,from,to){if(!from&&!to)return rows;return rows.filter(r=>r.date&&r.date>=from&&r.date<=to);}
 function fmt(n,d=2){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
-function setFilterSilent(from,to){
-  const meta=filterRows(typeof RAW_META!=='undefined'?RAW_META:[],from,to);
-  const leads=filterRows(typeof RAW_LEADS!=='undefined'?RAW_LEADS:[],from,to);
-  document.getElementById('kpi-leads').textContent=leads.length.toLocaleString();
-  document.getElementById('kpi-spend').textContent='$'+fmt(meta.reduce((s,r)=>s+r.spend,0));
-  document.getElementById('kpi-impressions').textContent=meta.reduce((s,r)=>s+r.impressions,0).toLocaleString();
-  document.getElementById('kpi-clicks').textContent=meta.reduce((s,r)=>s+r.clicks,0).toLocaleString();
-  const avgCtr=meta.length?meta.reduce((s,r)=>s+r.ctr,0)/meta.length:0;
-  const avgCpc=meta.length?meta.reduce((s,r)=>s+r.cpc,0)/meta.length:0;
-  const avgCpm=meta.length?meta.reduce((s,r)=>s+r.cpm,0)/meta.length:0;
-  document.getElementById('kpi-ctr').textContent=fmt(avgCtr)+'%';
-  document.getElementById('kpi-cpc').textContent='$'+fmt(avgCpc);
-  document.getElementById('kpi-cpm').textContent='$'+fmt(avgCpm);
-  document.getElementById('kpi-leads-sub').innerHTML=leads.length===0
-    ?'<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>'
-    :'<p class="metric-sub">Inbound inquiries</p>';
+
+function updateKPIs(from,to){
+  const metaSrc  = VIEW_MODE==='live' ? RAW_META_LIVE  : RAW_META_PAST;
+  const leadsSrc = VIEW_MODE==='live' ? RAW_LEADS_LIVE : RAW_LEADS_PAST;
+
+  const meta  = filterRows(metaSrc, from, to);
+  const leads = filterRows(leadsSrc, from, to);
+
+  document.getElementById('kpi-leads').textContent = leads.length.toLocaleString();
+  document.getElementById('kpi-spend').textContent = '$'+fmt(meta.reduce((s,r)=>s+r.spend,0));
+  document.getElementById('kpi-impressions').textContent = meta.reduce((s,r)=>s+r.impressions,0).toLocaleString();
+  document.getElementById('kpi-clicks').textContent = meta.reduce((s,r)=>s+r.clicks,0).toLocaleString();
+  const avgCtr = meta.length ? meta.reduce((s,r)=>s+r.ctr,0)/meta.length : 0;
+  const avgCpc = meta.length ? meta.reduce((s,r)=>s+r.cpc,0)/meta.length : 0;
+  const avgCpm = meta.length ? meta.reduce((s,r)=>s+r.cpm,0)/meta.length : 0;
+  document.getElementById('kpi-ctr').textContent = fmt(avgCtr)+'%';
+  document.getElementById('kpi-cpc').textContent = '$'+fmt(avgCpc);
+  document.getElementById('kpi-cpm').textContent = '$'+fmt(avgCpm);
+
+  // Leads sub-text
+  document.getElementById('kpi-leads-sub').innerHTML = leads.length===0
+    ? '<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>'
+    : '<p class="metric-sub">Inbound inquiries</p>';
+
+  // Lead value color: green if leads > 0
+  const leadsEl = document.getElementById('kpi-leads');
+  leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
 }
-function updateKPIs(from,to){setFilterSilent(from,to);}
+
 function setFilter(preset,btn){
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
@@ -488,35 +558,30 @@ function togglePanel(id){
 
 // ── Sauce Advisor ────────────────────────────────────────────────
 function buildInsights() {
-  const ads = typeof ADS_DATA !== 'undefined' ? ADS_DATA : [];
-  const topAd = ads[0];
-  const totalLeads = typeof TOTAL_LEADS !== 'undefined' ? TOTAL_LEADS : 0;
-  const liveLeads  = typeof LIVE_LEADS  !== 'undefined' ? LIVE_LEADS  : 0;
-  const isLive     = typeof IS_LIVE     !== 'undefined' ? IS_LIVE     : false;
-  const avgCtr     = ads.length ? ads.reduce((s,a)=>s+a.ctr,0)/ads.length : 0;
-  const topCtrAd   = [...ads].sort((a,b)=>b.ctr-a.ctr)[0];
+  const liveAds  = LIVE_ADS;
+  const pastAds  = PAST_ADS;
+  const liveLeads = RAW_LEADS_LIVE.length;
+  const pastLeads = RAW_LEADS_PAST.length;
+  const isLive    = IS_LIVE;
 
   const insights = [];
 
   if (!isLive) {
-    insights.push({type:'info', label:'Status', text:"Campaign is live but I'm still waiting for the first performance data from Meta. The moment it arrives, I'll start reading the signals."});
+    insights.push({type:'info', label:'Status', text:"Window Washing campaign is under construction. The moment Meta sends live performance data, everything goes green."});
   } else {
-    insights.push({type:'win', label:'Live', text:`Your campaign is live and data is flowing. Check back as the day builds — I'll have more to say soon.`});
+    insights.push({type:'win', label:'Live', text:"Window Washing is live and data is flowing. Check back as the numbers build."});
   }
 
-  if (topAd && topAd.leads > 0) {
-    insights.push({type:'win', label:'Lead Winner (Christmas Campaign)', text:`"${topAd.ad_name}" drove all ${topAd.leads} leads in the Christmas Lights campaign. That creative is your benchmark — replicate the format.`});
+  // Past campaign insights
+  const topPastAd = pastAds.length ? pastAds[0] : null;
+  if (topPastAd && topPastAd.leads > 0) {
+    insights.push({type:'win', label:'Christmas Lights MVP', text:`"${topPastAd.ad_name}" drove ${topPastAd.leads} leads in the Christmas Lights campaign. That creative is your benchmark.`});
+  }
+  if (pastLeads > 0) {
+    insights.push({type:'info', label:'Past Data', text:`${pastLeads} leads from Christmas Lights are saved under "View Past Campaigns." Your new Window Washing campaign starts fresh.`});
   }
 
-  if (topCtrAd) {
-    insights.push({type:'info', label:'CTR Leader', text:`"${topCtrAd.ad_name}" had the highest click-through rate at ${topCtrAd.ctr.toFixed(2)}%. High CTR means the hook is landing.`});
-  }
-
-  if (totalLeads > 0 && !isLive) {
-    insights.push({type:'info', label:'Note on the Numbers', text:`The ${totalLeads} leads shown are from the Christmas Lights campaign. Your new campaign starts fresh — watch this number once launch is confirmed.`});
-  }
-
-  insights.push({type:'soon', label:'Coming Soon', text:"A major intelligence upgrade is on the way. Once we have more live data, I'll start giving you real creative and audience breakdowns — the good stuff."});
+  insights.push({type:'soon', label:'Coming Soon', text:"Once Window Washing has live data, I'll start giving you real creative breakdowns and audience insights."});
 
   return insights;
 }
@@ -539,6 +604,10 @@ document.addEventListener('click', e => {
   const btn   = document.getElementById('sauce-btn');
   if (!panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('show');
 });
+
+// ── Initial render ──────────────────────────────────────────────
+updateKPIs(null, null);
+renderAds(LIVE_ADS);
 
 // ── Auto-refresh every 5 mins ────────────────────────────────────
 setTimeout(()=>location.reload(), 5*60*1000);

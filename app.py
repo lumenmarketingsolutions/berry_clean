@@ -194,19 +194,26 @@ def fetch_meta_data():
             "leads":       0,
             "creative_url": "",
         })
-    ads.sort(key=lambda x: x["spend"], reverse=True)
+    # Rank: leads desc, then CTR desc
+    ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
     return ads, raw_meta
 
+LAUNCH_DATE = "2026-03-11"   # campaign go-live date
+
 def fetch_leads():
-    """Return (total, raw_list) from Perspective_Leads, keyed by unique contact_id."""
+    """Return (all_leads, live_leads, raw_list) from Perspective_Leads."""
     sheet = open_sheet()
     ws = sheet.worksheet("Perspective_Leads")
     all_values = ws.get_all_values()
-    if not all_values: return 0, []
+    if not all_values: return 0, 0, []
     headers = [h.strip().lower() for h in all_values[0]]
-    id_idx   = next((i for i,h in enumerate(headers) if h=="contact_id"), None)
-    date_idx = next((i for i,h in enumerate(headers) if h=="date_sot"), None)
-    utm_idx  = next((i for i,h in enumerate(headers) if h=="utm_content"), None)
+
+    def col(name): return next((i for i,h in enumerate(headers) if h==name), None)
+    id_idx   = col("contact_id")
+    date_idx = col("date_sot")
+    utm_idx  = col("utm_content")
+    created_idx = col("created_at")
+
     seen, rows = set(), []
     for row in all_values[1:]:
         if not any(c.strip() for c in row): continue
@@ -214,17 +221,22 @@ def fetch_leads():
         if not contact or contact in seen: continue
         seen.add(contact)
         raw_date = row[date_idx].strip() if date_idx is not None and date_idx < len(row) else ""
+        created  = row[created_idx].strip() if created_idx is not None and created_idx < len(row) else ""
         utm      = row[utm_idx].strip()  if utm_idx  is not None and utm_idx  < len(row) else ""
-        rows.append({"id": contact, "date": parse_date(raw_date[:10]), "utm": utm})
-    return len(rows), rows
+        # Use created_at date if date_SOT missing
+        lead_date = parse_date(raw_date[:10]) or parse_date(created[:10])
+        rows.append({"id": contact, "date": lead_date, "utm": utm})
+
+    live_leads = sum(1 for r in rows if r["date"] >= LAUNCH_DATE)
+    return len(rows), live_leads, rows
 
 # ── Routes ────────────────────────────────────────────────────────────────────
 @app.route("/")
 @login_required
 def dashboard():
     try:
-        ads, raw_meta       = fetch_meta_data()
-        total_leads, raw_leads = fetch_leads()
+        ads, raw_meta                    = fetch_meta_data()
+        total_leads, live_leads, raw_leads = fetch_leads()
 
         # Attach lead counts to ads via utm_content
         utm_counts = defaultdict(int)
@@ -233,14 +245,22 @@ def dashboard():
         for ad in ads:
             ad["leads"] = utm_counts.get(ad["ad_id"], 0)
 
+        # Re-sort after attaching leads
+        ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
+
+        # Detect if campaign is live (any meta row from launch date or after)
+        is_live = any(r["date"] >= LAUNCH_DATE for r in raw_meta if r["date"])
+
         error = None
     except Exception as exc:
-        ads, raw_meta, raw_leads, total_leads = [], [], [], 0
+        ads, raw_meta, raw_leads = [], [], []
+        total_leads, live_leads, is_live = 0, 0, False
         error = str(exc)
 
     return render_template("index.html",
-        ads=ads, total_leads=total_leads,
+        ads=ads, total_leads=total_leads, live_leads=live_leads,
         raw_meta=raw_meta, raw_leads=raw_leads,
+        is_live=is_live, launch_date=LAUNCH_DATE,
         error=error, user_name=current_user.name
     )
 

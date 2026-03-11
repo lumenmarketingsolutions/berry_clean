@@ -3,44 +3,47 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Berry Clean — Performance Dashboard</title>
+  <title>Berry Clean — Dashboard</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     :root { --red:#f4271f; --red-dark:#c41e18; --red-pale:#fff0f0; --red-border:#ffc8c6; --red-mist:#fff8f8; }
     * { font-family:'Inter',sans-serif; }
-    body { background:#fff8f8; color:#1a0505; }
+    body { background:#fff8f8; color:#111; }
 
     .card { background:#fff; border:1px solid var(--red-border); border-radius:16px; }
-    .card-hover { transition:box-shadow .2s, transform .2s; }
+    .card-hover { transition:box-shadow .2s,transform .2s; }
     .card-hover:hover { box-shadow:0 4px 20px rgba(244,39,31,.10); transform:translateY(-1px); }
 
-    .section-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#d08080; margin-bottom:12px; }
+    .section-label { font-size:11px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:#c08080; margin-bottom:12px; }
     .metric-value  { font-size:26px; font-weight:700; color:var(--red); line-height:1; }
-    .metric-label  { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#d08080; }
-    .metric-sub    { font-size:12px; color:#e0a0a0; margin-top:3px; }
+    .metric-label  { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#c08080; }
+    .metric-sub    { font-size:12px; color:#999; margin-top:3px; }
 
-    .nav-pill { padding:7px 18px; border-radius:999px; font-size:13px; font-weight:500; color:#c08080; border:1px solid transparent; transition:all .2s; white-space:nowrap; cursor:pointer; }
-    .nav-pill:hover  { background:var(--red-pale); color:var(--red); }
-    .nav-pill.active { background:var(--red); color:#fff; }
-
-    .badge-live { display:inline-flex; align-items:center; gap:8px; background:#fff0f0; border:1px solid var(--red-border); color:var(--red); border-radius:999px; font-size:13px; font-weight:600; letter-spacing:.05em; padding:7px 16px; }
-    .live-dot { width:9px; height:9px; border-radius:50%; background:var(--red); animation:pulse 2s infinite; flex-shrink:0; }
+    /* Live badge */
+    .badge-live     { display:inline-flex; align-items:center; gap:8px; border-radius:999px; font-size:13px; font-weight:600; letter-spacing:.04em; padding:7px 16px; }
+    .badge-live-on  { background:#f0fff4; border:1px solid #86efac; color:#16a34a; }
+    .badge-live-off { background:#fefce8; border:1px solid #fde047; color:#854d0e; }
+    .live-dot-green  { width:9px; height:9px; border-radius:50%; background:#16a34a; animation:pulse 2s infinite; flex-shrink:0; }
+    .live-dot-yellow { width:9px; height:9px; border-radius:50%; background:#eab308; animation:pulse 1.4s infinite; flex-shrink:0; }
     @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
 
-    /* Date filter */
-    .df-pill { padding:5px 13px; border-radius:999px; font-size:12px; font-weight:500; color:#d08080; border:1px solid var(--red-border); background:#fff; cursor:pointer; transition:all .15s; white-space:nowrap; }
+    /* Date filter - mobile scroll */
+    .date-filter-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; padding-bottom:4px; }
+    .date-filter-wrap::-webkit-scrollbar { display:none; }
+    .date-filter { display:flex; gap:6px; width:max-content; }
+    .df-pill { padding:5px 13px; border-radius:999px; font-size:12px; font-weight:500; color:#c08080; border:1px solid var(--red-border); background:#fff; cursor:pointer; transition:all .15s; white-space:nowrap; }
     .df-pill:hover  { background:var(--red-pale); color:var(--red); }
     .df-pill.active { background:var(--red); color:#fff; border-color:var(--red); }
-    #date-popover { display:none; position:absolute; z-index:50; background:#fff; border:1px solid var(--red-border); border-radius:16px; padding:16px 18px; box-shadow:0 8px 32px rgba(244,39,31,.12); margin-top:6px; }
+    #date-popover { display:none; position:absolute; z-index:50; background:#fff; border:1px solid var(--red-border); border-radius:16px; padding:16px 18px; box-shadow:0 8px 32px rgba(244,39,31,.12); margin-top:6px; min-width:260px; }
     #date-popover.show { display:block; }
-    #date-popover label { font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#d08080; display:block; margin-bottom:5px; }
-    #date-popover input[type=date] { width:100%; padding:8px 10px; border:1px solid var(--red-border); border-radius:10px; font-size:13px; color:#1a0505; outline:none; font-family:'Inter',sans-serif; }
+    #date-popover label { font-size:11px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#c08080; display:block; margin-bottom:5px; }
+    #date-popover input[type=date] { width:100%; padding:8px 10px; border:1px solid var(--red-border); border-radius:10px; font-size:13px; color:#111; outline:none; font-family:'Inter',sans-serif; }
     #date-popover input[type=date]:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(244,39,31,.1); }
     .df-apply { width:100%; margin-top:12px; padding:8px; border-radius:10px; background:var(--red); color:#fff; font-size:13px; font-weight:600; border:none; cursor:pointer; }
 
     /* Zero-state bubble */
-    .thought-bubble { position:relative; margin-top:8px; display:inline-flex; align-items:center; gap:6px; background:var(--red-pale); border:1px solid var(--red-border); border-radius:12px; padding:5px 10px; font-size:11px; color:#d08080; font-weight:500; animation:floatBubble 3s ease-in-out infinite; white-space:nowrap; }
+    .thought-bubble { position:relative; margin-top:8px; display:inline-flex; align-items:center; gap:6px; background:var(--red-pale); border:1px solid var(--red-border); border-radius:12px; padding:5px 10px; font-size:11px; color:#c08080; font-weight:500; animation:floatBubble 3s ease-in-out infinite; white-space:nowrap; }
     .thought-bubble::before { content:''; position:absolute; bottom:-7px; left:14px; width:7px; height:7px; background:var(--red-pale); border-right:1px solid var(--red-border); border-bottom:1px solid var(--red-border); border-radius:0 0 3px 0; transform:rotate(45deg); }
     .bubble-dot { width:5px; height:5px; border-radius:50%; background:var(--red); opacity:.5; flex-shrink:0; }
     @keyframes floatBubble { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-3px)} }
@@ -48,33 +51,66 @@
     /* Ad list */
     .ad-list-row { display:flex; align-items:center; padding:14px 0; border-bottom:1px solid #fff0f0; gap:12px; }
     .ad-list-row:last-child { border-bottom:none; }
-    .ad-rank-num { width:24px; font-size:13px; font-weight:600; color:#e0b0b0; flex-shrink:0; text-align:center; }
-    .ad-stat { text-align:center; min-width:56px; }
-    .ad-stat-val { font-size:13px; font-weight:600; color:var(--red); }
-    .ad-stat-lbl { font-size:10px; color:#e0a0a0; text-transform:uppercase; letter-spacing:.05em; }
+    .ad-rank-num { width:24px; font-size:13px; font-weight:600; color:#ccc; flex-shrink:0; text-align:center; }
+    .ad-stat { text-align:center; min-width:52px; }
+    .ad-stat-val { font-size:13px; font-weight:600; color:#111; }
+    .ad-stat-lbl { font-size:10px; color:#bbb; text-transform:uppercase; letter-spacing:.05em; }
     .ctr-high { background:#fff0f0; color:var(--red); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
     .ctr-mid  { background:#fefce8; color:#854d0e; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
     .ctr-low  { background:#f5f5f5; color:#9ca3af; border-radius:999px; padding:2px 10px; font-size:12px; font-weight:600; }
+    .leads-badge { background:#fff0f0; border:1px solid var(--red-border); color:var(--red); border-radius:999px; padding:2px 10px; font-size:12px; font-weight:700; }
 
     /* Mobile */
     @media (max-width:767px) { .desktop-list{display:none;} .mobile-list{display:block;} }
     @media (min-width:768px) { .desktop-list{display:block;} .mobile-list{display:none;} }
-    .chevron { transition:transform .2s; font-size:11px; color:#e0a0a0; margin-left:auto; flex-shrink:0; }
+    .chevron { transition:transform .2s; font-size:11px; color:#ddd; margin-left:auto; flex-shrink:0; }
     .chevron.open { transform:rotate(180deg); }
     .m-ad-row { display:flex; align-items:center; gap:10px; padding:11px 14px; cursor:pointer; border-bottom:1px solid #fff0f0; transition:background .15s; min-width:0; }
     .m-ad-row p { min-width:0; }
     .m-ad-row:active { background:var(--red-pale); }
     .m-ad-details { display:none; padding:10px 14px 12px 46px; border-bottom:1px solid #fff0f0; background:#fff8f8; }
     .m-ad-details.open { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
-    .mini-stat { background:var(--red-mist); border-radius:10px; padding:8px; text-align:center; }
+    .mini-stat { background:var(--red-mist); border:1px solid var(--red-border); border-radius:10px; padding:8px; text-align:center; }
+
+    /* Campaign banner */
+    #christmas-banner { display:none; background:linear-gradient(135deg,#1a0505,#3d0c0c); border-radius:16px; padding:16px 20px; margin-bottom:4px; }
 
     /* Creative modal */
-    #creative-modal { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.5); align-items:center; justify-content:center; padding:20px; }
+    #creative-modal { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:20px; }
     #creative-modal.show { display:flex; }
     .modal-card { background:#fff; border-radius:20px; padding:24px; max-width:480px; width:100%; }
-    .modal-img { width:100%; border-radius:12px; object-fit:cover; max-height:320px; border:1px solid var(--red-border); }
+    .modal-img { width:100%; border-radius:12px; object-fit:cover; max-height:300px; border:1px solid var(--red-border); }
     .view-creative-btn { font-size:11px; font-weight:600; color:var(--red); background:var(--red-pale); border:1px solid var(--red-border); border-radius:999px; padding:3px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background .15s; }
     .view-creative-btn:hover { background:#ffd8d8; }
+
+    /* Sauce advisor */
+    #sauce-btn {
+      position:fixed; bottom:24px; right:24px; z-index:400;
+      width:36px; height:36px; border-radius:50%;
+      background:#fff; border:1px solid #eee;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; font-size:15px; color:#ccc;
+      box-shadow:0 2px 12px rgba(0,0,0,.08);
+      transition:all .2s; opacity:.6;
+    }
+    #sauce-btn:hover { opacity:1; border-color:var(--red-border); color:var(--red); box-shadow:0 4px 20px rgba(244,39,31,.15); }
+    #sauce-panel {
+      display:none; position:fixed; bottom:70px; right:24px; z-index:400;
+      width:320px; max-width:calc(100vw - 48px);
+      background:#fff; border:1px solid var(--red-border);
+      border-radius:20px; box-shadow:0 8px 40px rgba(244,39,31,.12);
+      overflow:hidden;
+    }
+    #sauce-panel.show { display:block; animation:slideUp .25s ease; }
+    @keyframes slideUp { from{transform:translateY(12px);opacity:0} to{transform:translateY(0);opacity:1} }
+    .sauce-header { background:var(--red); padding:14px 16px; display:flex; align-items:center; gap:10px; }
+    .sauce-avatar { width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.2); display:flex; align-items:center; justify-content:center; font-size:16px; }
+    .sauce-insight { padding:12px 16px; border-bottom:1px solid #fff0f0; font-size:13px; color:#333; line-height:1.5; }
+    .sauce-insight:last-child { border-bottom:none; }
+    .sauce-insight-label { font-size:10px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; margin-bottom:4px; }
+    .sauce-win   .sauce-insight-label { color:#16a34a; }
+    .sauce-info  .sauce-insight-label { color:var(--red); }
+    .sauce-soon  .sauce-insight-label { color:#d97706; }
 
     /* Welcome screen */
     #welcome-screen { position:fixed; inset:0; z-index:9999; background:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; opacity:1; transition:opacity .6s; pointer-events:none; }
@@ -84,42 +120,58 @@
 
 <!-- Welcome screen -->
 <div id="welcome-screen">
-  <img src="/static/berry-clean-logo.png" style="height:48px; margin-bottom:8px;" onerror="this.style.display='none'"/>
-  <p style="font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#d08080;">Berry Clean</p>
-  <p id="welcome-name" style="font-size:46px;font-weight:700;color:#1a0505;letter-spacing:-.02em;line-height:1.1;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .5s;max-width:340px;text-align:center;">Welcome, {{ user_name }}</p>
-  <p id="welcome-sub" style="font-size:14px;color:#d08080;opacity:0;transition:opacity .5s .2s;max-width:280px;text-align:center;line-height:1.5;padding:0 16px;margin-top:6px;"></p>
+  <img src="/static/berry-clean-logo.png" style="height:48px;margin-bottom:8px;" onerror="this.style.display='none'"/>
+  <p style="font-size:12px;font-weight:600;letter-spacing:.15em;text-transform:uppercase;color:#c08080;">Berry Clean</p>
+  <p id="welcome-name" style="font-size:46px;font-weight:700;color:#111;letter-spacing:-.02em;line-height:1.1;opacity:0;transform:translateY(10px);transition:opacity .5s,transform .5s;max-width:340px;text-align:center;">Welcome, {{ user_name }}</p>
+  <p id="welcome-sub" style="font-size:14px;color:#c08080;opacity:0;transition:opacity .5s .2s;max-width:280px;text-align:center;line-height:1.5;padding:0 16px;margin-top:6px;"></p>
 </div>
 
 <!-- Creative modal -->
 <div id="creative-modal">
   <div class="modal-card">
-    <div style="display:flex;align-items:center;justify-content:between;margin-bottom:16px;">
-      <div style="flex:1;">
-        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#d08080;">Ad Creative</p>
-        <p id="modal-ad-name" style="font-size:16px;font-weight:600;color:#1a0505;margin-top:2px;"></p>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+      <div>
+        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#c08080;">Ad Creative</p>
+        <p id="modal-ad-name" style="font-size:16px;font-weight:600;color:#111;margin-top:2px;"></p>
       </div>
-      <button onclick="document.getElementById('creative-modal').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#d08080;padding:4px 8px;">✕</button>
+      <button onclick="document.getElementById('creative-modal').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#ccc;padding:4px 8px;">✕</button>
     </div>
     <img id="modal-img" class="modal-img" src="" alt="Ad Creative"/>
     <div style="margin-top:12px;padding:10px;background:var(--red-pale);border-radius:10px;border:1px solid var(--red-border);">
-      <p style="font-size:11px;color:#d08080;">Creative URL (Drive/image link)</p>
-      <p id="modal-url" style="font-size:12px;color:var(--red);margin-top:2px;word-break:break-all;"></p>
+      <p style="font-size:11px;color:#c08080;font-weight:500;">Creative not yet linked</p>
+      <p style="font-size:12px;color:#999;margin-top:2px;">Add a Google Drive image URL to populate this creative.</p>
     </div>
   </div>
 </div>
 
+<!-- Sauce advisor panel -->
+<div id="sauce-panel">
+  <div class="sauce-header">
+    <div class="sauce-avatar">🍓</div>
+    <div>
+      <p style="font-size:13px;font-weight:700;color:#fff;">Sauce</p>
+      <p style="font-size:11px;color:rgba(255,255,255,.7);">Your analytics advisor</p>
+    </div>
+    <button onclick="toggleSauce()" style="margin-left:auto;background:none;border:none;cursor:pointer;color:rgba(255,255,255,.7);font-size:18px;padding:0 4px;">✕</button>
+  </div>
+  <div id="sauce-insights"></div>
+</div>
+<button id="sauce-btn" onclick="toggleSauce()" title="Ask Sauce">?</button>
+
 <!-- Header -->
-<header style="background:#fff;border-bottom:1px solid var(--red-border);" class="px-5 py-4 flex items-center justify-between sticky top-0 z-50">
+<header style="background:#fff;border-bottom:1px solid var(--red-border);" class="px-5 py-3 flex items-center justify-between sticky top-0 z-50">
   <div class="flex items-center gap-3">
-    <img src="/static/berry-clean-logo.png" style="height:36px;" onerror="this.style.display='none'"/>
+    <img src="/static/berry-clean-logo.png" style="height:32px;" onerror="this.style.display='none'"/>
+    <div>
+      <p style="font-size:11px;color:#c08080;font-weight:500;">Treasure Valley</p>
+    </div>
   </div>
   <div class="flex items-center gap-3">
-    <span class="text-xs hidden sm:block" style="color:#e0a0a0;">Live Data</span>
     <a href="/logout" style="font-size:11px;color:#e0b0b0;text-decoration:none;padding:4px 10px;border:1px solid #ffd0ce;border-radius:999px;">Sign out</a>
   </div>
 </header>
 
-<main class="max-w-5xl mx-auto px-4 py-8 space-y-8">
+<main class="max-w-5xl mx-auto px-4 py-8 space-y-6">
 
   {% if error %}
   <div class="card px-5 py-4 text-red-600 text-sm" style="border-color:#fca5a5;background:#fff5f5;">
@@ -127,13 +179,30 @@
   </div>
   {% endif %}
 
-  <!-- Live badge -->
-  <div><span class="badge-live"><span class="live-dot"></span>Treasure Valley · Live</span></div>
+  <!-- Campaign switcher + live badge -->
+  <div class="flex items-center justify-between flex-wrap gap-3">
+    <div id="live-badge">
+      {% if is_live %}
+      <span class="badge-live badge-live-on"><span class="live-dot-green"></span>Live</span>
+      {% else %}
+      <span class="badge-live badge-live-off"><span class="live-dot-yellow"></span>Launch in Progress</span>
+      {% endif %}
+    </div>
+    <button id="past-campaigns-btn" onclick="showChristmas()" style="font-size:12px;font-weight:600;color:#c08080;background:var(--red-pale);border:1px solid var(--red-border);border-radius:999px;padding:6px 14px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='#c08080'">
+      🎄 View Past Campaigns
+    </button>
+  </div>
 
-  <!-- Campaign tabs -->
-  <div style="display:flex;gap:8px;flex-wrap:wrap;">
-    <button class="nav-pill active" id="tab-live" onclick="switchTab('live')">Live Campaign</button>
-    <button class="nav-pill" id="tab-christmas" onclick="switchTab('christmas')">🎄 Christmas Lights 2025</button>
+  <!-- Christmas banner (hidden by default) -->
+  <div id="christmas-banner">
+    <div class="flex items-center justify-between">
+      <div>
+        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);">Viewing Past Campaign</p>
+        <p style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">🎄 Christmas Lights 2025</p>
+        <p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">November – December 2025</p>
+      </div>
+      <button onclick="showLive()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">← Back to Live</button>
+    </div>
   </div>
 
   {% if ads %}
@@ -145,19 +214,28 @@
   {% set avg_cpm           = (ads | sum(attribute='cpm') / ads|length) %}
 
   <script>
-    const RAW_META  = {{ raw_meta  | tojson }};
-    const RAW_LEADS = {{ raw_leads | tojson }};
+    const RAW_META    = {{ raw_meta    | tojson }};
+    const RAW_LEADS   = {{ raw_leads   | tojson }};
+    const IS_LIVE     = {{ is_live | tojson }};
+    const LAUNCH_DATE = "{{ launch_date }}";
+    const TOTAL_LEADS = {{ total_leads }};
+    const LIVE_LEADS  = {{ live_leads }};
+    const ADS_DATA    = {{ ads | tojson }};
   </script>
 
-  <!-- KPI Section -->
+  <!-- KPI cards -->
   <div id="kpi-section">
     <!-- Date filter -->
     <section style="position:relative;" class="mb-4">
-      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
-        <span class="section-label" style="margin-bottom:0;margin-right:4px;">Overview</span>
-        {% for label, val in [('Today','today'),('Yesterday','yesterday'),('Last 7 Days','7d'),('Last 30 Days','30d'),('Maximum','max'),('Custom','custom')] %}
-        <button class="df-pill {% if val=='max' %}active{% endif %}" onclick="setFilter('{{ val }}',this)">{{ label }}</button>
-        {% endfor %}
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:nowrap;margin-bottom:10px;">
+        <span class="section-label" style="margin-bottom:0;flex-shrink:0;">Overview</span>
+      </div>
+      <div class="date-filter-wrap">
+        <div class="date-filter">
+          {% for label, val in [('Today','today'),('Yesterday','yesterday'),('Last 7 Days','7d'),('Last 30 Days','30d'),('Maximum','max'),('Custom','custom')] %}
+          <button class="df-pill {% if val=='max' %}active{% endif %}" onclick="setFilter('{{ val }}',this)">{{ label }}</button>
+          {% endfor %}
+        </div>
       </div>
       <div id="date-popover">
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
@@ -168,7 +246,20 @@
       </div>
     </section>
 
-    <!-- 4 main cards -->
+    <!-- Live campaign zero state message -->
+    <div id="launch-msg" style="display:{% if not is_live %}block{% else %}none{% endif %};">
+      <div class="card p-5 mb-4" style="border-color:#fde68a;background:#fffbeb;">
+        <div style="display:flex;gap:12px;align-items:flex-start;">
+          <span style="font-size:24px;">🚀</span>
+          <div>
+            <p style="font-size:14px;font-weight:600;color:#92400e;">Campaign is warming up</p>
+            <p style="font-size:13px;color:#b45309;margin-top:3px;line-height:1.5;">Your new campaign hasn't logged its first data point yet. The dashboard is watching — the moment Meta sends performance data, this goes green and live.</p>
+            <p style="font-size:12px;color:#d97706;margin-top:8px;">Checking every 5 minutes...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
       <div class="card card-hover p-4">
         <p class="metric-label">Fresh Leads</p>
@@ -194,7 +285,6 @@
         <p class="metric-sub">Link clicks</p>
       </div>
     </div>
-    <!-- 3 metric cards -->
     <div class="grid grid-cols-3 gap-3">
       <div class="card card-hover p-4">
         <p class="metric-label">Avg CTR</p>
@@ -218,19 +308,21 @@
   <section class="card overflow-hidden">
     <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid var(--red-border);">
       <p class="section-label" style="margin-bottom:0;">Ad Rankings</p>
-      <span class="text-xs" style="color:#e0a0a0;">{{ ads|length }} ads · ranked by spend</span>
+      <span class="text-xs" style="color:#bbb;">{{ ads|length }} ads · leads first, then CTR</span>
     </div>
 
     <!-- Desktop -->
     <div class="desktop-list">
       {% for ad in ads %}
       <div class="ad-list-row px-5">
-        <span class="ad-rank-num">{{ loop.index }}</span>
+        <span class="ad-rank-num" style="{% if loop.index==1 %}color:#d4af37{% elif loop.index==2 %}color:#a8a9ad{% elif loop.index==3 %}color:#cd7f32{% endif %}">{{ loop.index }}</span>
         <div style="flex:1;min-width:0;">
-          <p class="text-sm font-medium truncate" style="color:#1a0505;">{{ ad.ad_name or '—' }}</p>
-          <p class="text-xs truncate" style="color:#e0a0a0;">{{ ad.campaign or '' }}</p>
+          <p class="text-sm font-semibold truncate" style="color:#111;">{{ ad.ad_name or '—' }}</p>
+          <p class="text-xs truncate" style="color:#bbb;">{{ ad.campaign or '' }}</p>
         </div>
-        <div class="ad-stat"><p class="ad-stat-val">{{ ad.leads }}</p><p class="ad-stat-lbl">Leads</p></div>
+        {% if ad.leads > 0 %}
+        <span class="leads-badge">{{ ad.leads }} leads</span>
+        {% endif %}
         <div class="ad-stat"><p class="ad-stat-val">${{ '{:.0f}'.format(ad.spend) }}</p><p class="ad-stat-lbl">Spend</p></div>
         <div class="ad-stat"><p class="ad-stat-val">{{ '{:,}'.format(ad.impressions) }}</p><p class="ad-stat-lbl">Impr.</p></div>
         <div class="ad-stat"><p class="ad-stat-val">{{ '{:,}'.format(ad.clicks) }}</p><p class="ad-stat-lbl">Clicks</p></div>
@@ -239,27 +331,27 @@
             {{ '{:.2f}'.format(ad.ctr) }}% CTR
           </span>
         </div>
-        <button class="view-creative-btn" onclick="openCreative('{{ ad.ad_id }}','{{ ad.ad_name | e }}','{{ ad.creative_url | e }}')">View Creative</button>
+        <button class="view-creative-btn" onclick="openCreative('{{ ad.ad_id }}','{{ ad.ad_name | e }}')">View Creative</button>
       </div>
       {% endfor %}
     </div>
 
-    <!-- Mobile accordion -->
+    <!-- Mobile -->
     <div class="mobile-list">
       {% for ad in ads %}
       <div class="m-ad-row" onclick="togglePanel('a{{ loop.index }}')">
-        <span class="ad-rank-num">{{ loop.index }}</span>
-        <p class="text-sm font-medium flex-1 truncate" style="color:#1a0505;">{{ ad.ad_name or '—' }}</p>
-        <span class="ctr-{% if ad.ctr >= 5 %}high{% elif ad.ctr >= 2 %}mid{% else %}low{% endif %}" style="flex-shrink:0;font-size:11px;">{{ '{:.2f}'.format(ad.ctr) }}%</span>
+        <span class="ad-rank-num" style="{% if loop.index==1 %}color:#d4af37{% elif loop.index==2 %}color:#a8a9ad{% elif loop.index==3 %}color:#cd7f32{% endif %}">{{ loop.index }}</span>
+        <p class="text-sm font-medium flex-1 truncate" style="color:#111;">{{ ad.ad_name or '—' }}</p>
+        {% if ad.leads > 0 %}<span class="leads-badge" style="flex-shrink:0;font-size:10px;">{{ ad.leads }}🍓</span>{% endif %}
         <span class="chevron" id="a{{ loop.index }}-chev">▼</span>
       </div>
-      <div class="m-ad-details" id="a{{ loop.index }}" style="grid-template-columns:1fr 1fr 1fr;">
-        <div class="mini-stat"><p class="ad-stat-lbl">Leads</p><p class="ad-stat-val">{{ ad.leads }}</p></div>
+      <div class="m-ad-details" id="a{{ loop.index }}">
+        <div class="mini-stat"><p class="ad-stat-lbl">Leads</p><p class="ad-stat-val" style="color:var(--red);">{{ ad.leads }}</p></div>
         <div class="mini-stat"><p class="ad-stat-lbl">Spend</p><p class="ad-stat-val">${{ '{:.0f}'.format(ad.spend) }}</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">Clicks</p><p class="ad-stat-val">{{ '{:,}'.format(ad.clicks) }}</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">Impressions</p><p class="ad-stat-val">{{ '{:,}'.format(ad.impressions) }}</p></div>
         <div class="mini-stat"><p class="ad-stat-lbl">CTR</p><p class="ad-stat-val">{{ '{:.2f}'.format(ad.ctr) }}%</p></div>
-        <div class="mini-stat" style="cursor:pointer;" onclick="openCreative('{{ ad.ad_id }}','{{ ad.ad_name | e }}','{{ ad.creative_url | e }}')">
+        <div class="mini-stat"><p class="ad-stat-lbl">Clicks</p><p class="ad-stat-val">{{ '{:,}'.format(ad.clicks) }}</p></div>
+        <div class="mini-stat"><p class="ad-stat-lbl">Impr.</p><p class="ad-stat-val">{{ '{:,}'.format(ad.impressions) }}</p></div>
+        <div class="mini-stat" style="cursor:pointer;" onclick="openCreative('{{ ad.ad_id }}','{{ ad.ad_name | e }}')">
           <p class="ad-stat-lbl">Creative</p>
           <p style="font-size:12px;color:var(--red);font-weight:600;">View →</p>
         </div>
@@ -269,131 +361,184 @@
   </section>
 
   {% else %}
-  <div class="card px-6 py-16 text-center" style="color:#e0a0a0;">No ad data found. Check back soon.</div>
+  <div class="card px-6 py-16 text-center" style="color:#bbb;">No ad data found.</div>
   {% endif %}
 
 </main>
 
 <footer style="border-top:1px solid var(--red-border);background:#fff;" class="px-5 py-4 mt-8 text-center">
-  <p class="text-xs" style="color:#e0c0c0;">Berry Clean &copy; 2026 · Powered by Lumen</p>
+  <p class="text-xs" style="color:#ddd;">Berry Clean &copy; 2026 · Powered by Lumen</p>
 </footer>
 
 <script>
-// ── Welcome screen ─────────────────────────────────────────────
+// ── Welcome screen ──────────────────────────────────────────────
 (function() {
   const QUIPS = [
     "Your window's clearest view yet.",
     "Streak-free data. Just like the windows.",
     "Clean numbers. Clean glass.",
     "The results are in — and they're spotless.",
-    "Data as clear as a freshly cleaned pane.",
     "No streaks here — just results.",
     "Fresh data, fresh start.",
-    "Squeaky clean performance, incoming."
+    "Squeaky clean performance, incoming.",
+    "Cleaner than a January window."
   ];
-  const MINS = 15, KEY = 'bc_last_seen';
-  const skip = sessionStorage.getItem('skip_welcome');
-  const last = parseInt(localStorage.getItem(KEY)||'0',10);
-  const now  = Date.now();
-  const away = now - last > MINS*60*1000;
-  localStorage.setItem(KEY, now);
-  const el = document.getElementById('welcome-screen');
-  if (skip || !away) { sessionStorage.removeItem('skip_welcome'); el.style.display='none'; return; }
+  const MINS=15, KEY='bc_last_seen';
+  const skip=sessionStorage.getItem('skip_welcome');
+  const last=parseInt(localStorage.getItem(KEY)||'0',10);
+  const now=Date.now(), away=now-last>MINS*60*1000;
+  localStorage.setItem(KEY,now);
+  const el=document.getElementById('welcome-screen');
+  if(skip||!away){sessionStorage.removeItem('skip_welcome');el.style.display='none';return;}
   sessionStorage.removeItem('skip_welcome');
-  document.getElementById('welcome-sub').textContent = QUIPS[Math.floor(Math.random()*QUIPS.length)];
-  setTimeout(() => {
-    document.getElementById('welcome-name').style.opacity='1';
-    document.getElementById('welcome-name').style.transform='translateY(0)';
-    document.getElementById('welcome-sub').style.opacity='1';
-  }, 200);
-  setTimeout(() => { el.style.opacity='0'; }, 2000);
-  setTimeout(() => { el.style.display='none'; }, 2600);
+  document.getElementById('welcome-sub').textContent=QUIPS[Math.floor(Math.random()*QUIPS.length)];
+  setTimeout(()=>{document.getElementById('welcome-name').style.opacity='1';document.getElementById('welcome-name').style.transform='translateY(0)';document.getElementById('welcome-sub').style.opacity='1';},200);
+  setTimeout(()=>{el.style.opacity='0';},2000);
+  setTimeout(()=>{el.style.display='none';},2600);
 })();
 
-// ── Campaign tab switcher ───────────────────────────────────────
-function switchTab(tab) {
-  document.getElementById('tab-live').classList.toggle('active', tab==='live');
-  document.getElementById('tab-christmas').classList.toggle('active', tab==='christmas');
-  // Both tabs show the same data for now (Christmas Lights IS the current data)
-  // When a live campaign is added, this will diverge
-  document.getElementById('kpi-section').style.opacity = '1';
+// ── Campaign switcher ───────────────────────────────────────────
+function showChristmas() {
+  document.getElementById('christmas-banner').style.display='block';
+  document.getElementById('past-campaigns-btn').style.display='none';
+  document.getElementById('launch-msg').style.display='none';
+  // Show all historical data (max filter)
+  setFilterSilent(null, null);
+  document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelector('.df-pill:last-child').classList.add('active');
+}
+function showLive() {
+  document.getElementById('christmas-banner').style.display='none';
+  document.getElementById('past-campaigns-btn').style.display='';
+  if(!IS_LIVE) document.getElementById('launch-msg').style.display='block';
+  // Reset to max
+  setFilterSilent(null, null);
+  document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.df-pill')[4].classList.add('active');
 }
 
 // ── Creative modal ──────────────────────────────────────────────
-const PLACEHOLDER = 'https://images.unsplash.com/photo-1607083206968-13611e3d76db?w=480&q=80';
-function openCreative(adId, adName, url) {
-  document.getElementById('modal-ad-name').textContent = adName;
-  const imgUrl = url || PLACEHOLDER;
-  document.getElementById('modal-img').src = imgUrl;
-  document.getElementById('modal-url').textContent = url || 'No creative URL set yet — add a Google Drive image link to populate this.';
+const PLACEHOLDER='https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=480&q=80';
+function openCreative(adId, adName) {
+  document.getElementById('modal-ad-name').textContent=adName;
+  document.getElementById('modal-img').src=PLACEHOLDER;
   document.getElementById('creative-modal').classList.add('show');
 }
-document.getElementById('creative-modal').addEventListener('click', function(e) {
-  if (e.target === this) this.classList.remove('show');
-});
+document.getElementById('creative-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
 
 // ── Date filter ─────────────────────────────────────────────────
-function toYMD(d) { return d.toISOString().slice(0,10); }
-function dateRange(preset) {
-  const today = new Date(); today.setHours(0,0,0,0);
-  if (preset==='max') return [null,null];
-  if (preset==='today') return [toYMD(today),toYMD(today)];
-  if (preset==='yesterday') { const y=new Date(today); y.setDate(y.getDate()-1); return [toYMD(y),toYMD(y)]; }
-  if (preset==='7d')  { const f=new Date(today); f.setDate(f.getDate()-6);  return [toYMD(f),toYMD(today)]; }
-  if (preset==='30d') { const f=new Date(today); f.setDate(f.getDate()-29); return [toYMD(f),toYMD(today)]; }
-  return [null,null];
+function toYMD(d){return d.toISOString().slice(0,10);}
+function dateRange(preset){
+  const today=new Date();today.setHours(0,0,0,0);
+  if(preset==='max')return[null,null];
+  if(preset==='today')return[toYMD(today),toYMD(today)];
+  if(preset==='yesterday'){const y=new Date(today);y.setDate(y.getDate()-1);return[toYMD(y),toYMD(y)];}
+  if(preset==='7d'){const f=new Date(today);f.setDate(f.getDate()-6);return[toYMD(f),toYMD(today)];}
+  if(preset==='30d'){const f=new Date(today);f.setDate(f.getDate()-29);return[toYMD(f),toYMD(today)];}
+  return[null,null];
 }
-function filterRows(rows,from,to) {
-  if (!from&&!to) return rows;
-  return rows.filter(r=>r.date&&r.date>=from&&r.date<=to);
+function filterRows(rows,from,to){if(!from&&!to)return rows;return rows.filter(r=>r.date&&r.date>=from&&r.date<=to);}
+function fmt(n,d=2){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function setFilterSilent(from,to){
+  const meta=filterRows(typeof RAW_META!=='undefined'?RAW_META:[],from,to);
+  const leads=filterRows(typeof RAW_LEADS!=='undefined'?RAW_LEADS:[],from,to);
+  document.getElementById('kpi-leads').textContent=leads.length.toLocaleString();
+  document.getElementById('kpi-spend').textContent='$'+fmt(meta.reduce((s,r)=>s+r.spend,0));
+  document.getElementById('kpi-impressions').textContent=meta.reduce((s,r)=>s+r.impressions,0).toLocaleString();
+  document.getElementById('kpi-clicks').textContent=meta.reduce((s,r)=>s+r.clicks,0).toLocaleString();
+  const avgCtr=meta.length?meta.reduce((s,r)=>s+r.ctr,0)/meta.length:0;
+  const avgCpc=meta.length?meta.reduce((s,r)=>s+r.cpc,0)/meta.length:0;
+  const avgCpm=meta.length?meta.reduce((s,r)=>s+r.cpm,0)/meta.length:0;
+  document.getElementById('kpi-ctr').textContent=fmt(avgCtr)+'%';
+  document.getElementById('kpi-cpc').textContent='$'+fmt(avgCpc);
+  document.getElementById('kpi-cpm').textContent='$'+fmt(avgCpm);
+  document.getElementById('kpi-leads-sub').innerHTML=leads.length===0
+    ?'<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>'
+    :'<p class="metric-sub">Inbound inquiries</p>';
 }
-function fmt(n,d=2) { return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}); }
-function updateKPIs(from,to) {
-  const meta  = filterRows(typeof RAW_META  !=='undefined'?RAW_META  :[], from, to);
-  const leads = filterRows(typeof RAW_LEADS !=='undefined'?RAW_LEADS :[], from, to);
-  document.getElementById('kpi-leads').textContent       = leads.length.toLocaleString();
-  document.getElementById('kpi-spend').textContent       = '$'+fmt(meta.reduce((s,r)=>s+r.spend,0));
-  document.getElementById('kpi-impressions').textContent = meta.reduce((s,r)=>s+r.impressions,0).toLocaleString();
-  document.getElementById('kpi-clicks').textContent      = meta.reduce((s,r)=>s+r.clicks,0).toLocaleString();
-  const avgCtr = meta.length ? meta.reduce((s,r)=>s+r.ctr,0)/meta.length : 0;
-  const avgCpc = meta.length ? meta.reduce((s,r)=>s+r.cpc,0)/meta.length : 0;
-  const avgCpm = meta.length ? meta.reduce((s,r)=>s+r.cpm,0)/meta.length : 0;
-  document.getElementById('kpi-ctr').textContent = fmt(avgCtr)+'%';
-  document.getElementById('kpi-cpc').textContent = '$'+fmt(avgCpc);
-  document.getElementById('kpi-cpm').textContent = '$'+fmt(avgCpm);
-  document.getElementById('kpi-leads-sub').innerHTML = leads.length===0
-    ? '<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>'
-    : '<p class="metric-sub">Inbound inquiries</p>';
-}
-function setFilter(preset,btn) {
+function updateKPIs(from,to){setFilterSilent(from,to);}
+function setFilter(preset,btn){
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   const pop=document.getElementById('date-popover');
-  if (preset==='custom') { pop.classList.toggle('show'); return; }
+  if(preset==='custom'){pop.classList.toggle('show');return;}
   pop.classList.remove('show');
-  const [from,to]=dateRange(preset);
+  const[from,to]=dateRange(preset);
   updateKPIs(from,to);
 }
-function applyCustom() {
+function applyCustom(){
   const from=document.getElementById('df-from').value;
   const to=document.getElementById('df-to').value||from;
   document.getElementById('date-popover').classList.remove('show');
-  if (from) updateKPIs(from,to);
+  if(from)updateKPIs(from,to);
 }
 document.addEventListener('click',e=>{
   const pop=document.getElementById('date-popover');
-  if(pop&&!pop.contains(e.target)&&!e.target.closest('.df-pill')) pop.classList.remove('show');
+  if(pop&&!pop.contains(e.target)&&!e.target.closest('.df-pill'))pop.classList.remove('show');
 });
 
 // ── Mobile accordion ────────────────────────────────────────────
-function togglePanel(id) {
-  const panel=document.getElementById(id);
-  const chev=document.getElementById(id+'-chev');
-  if(!panel) return;
+function togglePanel(id){
+  const panel=document.getElementById(id),chev=document.getElementById(id+'-chev');
+  if(!panel)return;
   const isOpen=panel.classList.contains('open');
   panel.classList.toggle('open',!isOpen);
-  if(chev) chev.classList.toggle('open',!isOpen);
+  if(chev)chev.classList.toggle('open',!isOpen);
 }
+
+// ── Sauce Advisor ────────────────────────────────────────────────
+function buildInsights() {
+  const ads = typeof ADS_DATA !== 'undefined' ? ADS_DATA : [];
+  const topAd = ads[0];
+  const totalLeads = typeof TOTAL_LEADS !== 'undefined' ? TOTAL_LEADS : 0;
+  const liveLeads  = typeof LIVE_LEADS  !== 'undefined' ? LIVE_LEADS  : 0;
+  const isLive     = typeof IS_LIVE     !== 'undefined' ? IS_LIVE     : false;
+  const avgCtr     = ads.length ? ads.reduce((s,a)=>s+a.ctr,0)/ads.length : 0;
+  const topCtrAd   = [...ads].sort((a,b)=>b.ctr-a.ctr)[0];
+
+  const insights = [];
+
+  if (!isLive) {
+    insights.push({type:'info', label:'Status', text:"Campaign is live but I'm still waiting for the first performance data from Meta. The moment it arrives, I'll start reading the signals."});
+  } else {
+    insights.push({type:'win', label:'Live', text:`Your campaign is live and data is flowing. Check back as the day builds — I'll have more to say soon.`});
+  }
+
+  if (topAd && topAd.leads > 0) {
+    insights.push({type:'win', label:'Lead Winner (Christmas Campaign)', text:`"${topAd.ad_name}" drove all ${topAd.leads} leads in the Christmas Lights campaign. That creative is your benchmark — replicate the format.`});
+  }
+
+  if (topCtrAd) {
+    insights.push({type:'info', label:'CTR Leader', text:`"${topCtrAd.ad_name}" had the highest click-through rate at ${topCtrAd.ctr.toFixed(2)}%. High CTR means the hook is landing.`});
+  }
+
+  if (totalLeads > 0 && !isLive) {
+    insights.push({type:'info', label:'Note on the Numbers', text:`The ${totalLeads} leads shown are from the Christmas Lights campaign. Your new campaign starts fresh — watch this number once launch is confirmed.`});
+  }
+
+  insights.push({type:'soon', label:'Coming Soon', text:"A major intelligence upgrade is on the way. Once we have more live data, I'll start giving you real creative and audience breakdowns — the good stuff."});
+
+  return insights;
+}
+
+function toggleSauce() {
+  const panel = document.getElementById('sauce-panel');
+  const isShowing = panel.classList.contains('show');
+  if (!isShowing) {
+    const container = document.getElementById('sauce-insights');
+    container.innerHTML = buildInsights().map(i => `
+      <div class="sauce-insight sauce-${i.type}">
+        <p class="sauce-insight-label">${i.label}</p>
+        <p>${i.text}</p>
+      </div>`).join('');
+  }
+  panel.classList.toggle('show', !isShowing);
+}
+document.addEventListener('click', e => {
+  const panel = document.getElementById('sauce-panel');
+  const btn   = document.getElementById('sauce-btn');
+  if (!panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('show');
+});
 
 // ── Auto-refresh every 5 mins ────────────────────────────────────
 setTimeout(()=>location.reload(), 5*60*1000);

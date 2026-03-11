@@ -249,7 +249,7 @@
     <div class="flex items-center justify-between">
       <div>
         <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);">Viewing Past Campaign</p>
-        <p style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">&#127876; Christmas Lights 2025</p>
+        <p style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">&#127876; Holiday Lighting 2025</p>
         <p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">November &ndash; December 2025</p>
       </div>
       <button onclick="showLive()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">&larr; Back to Live</button>
@@ -575,10 +575,10 @@ function buildInsights() {
   // Past campaign insights
   const topPastAd = pastAds.length ? pastAds[0] : null;
   if (topPastAd && topPastAd.leads > 0) {
-    insights.push({type:'win', label:'Christmas Lights MVP', text:`"${topPastAd.ad_name}" drove ${topPastAd.leads} leads in the Christmas Lights campaign. That creative is your benchmark.`});
+    insights.push({type:'win', label:'Holiday Lighting MVP', text:`"${topPastAd.ad_name}" drove ${topPastAd.leads} leads in the Holiday Lighting campaign. That creative is your benchmark.`});
   }
   if (pastLeads > 0) {
-    insights.push({type:'info', label:'Past Data', text:`${pastLeads} leads from Christmas Lights are saved under "View Past Campaigns." Your new Window Washing campaign starts fresh.`});
+    insights.push({type:'info', label:'Past Data', text:`${pastLeads} leads from Holiday Lighting are saved under "View Past Campaigns." Your new Window Washing campaign starts fresh.`});
   }
 
   insights.push({type:'soon', label:'Coming Soon', text:"Once Window Washing has live data, I'll start giving you real creative breakdowns and audience insights."});

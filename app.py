@@ -167,7 +167,7 @@ def fetch_meta_data():
         campaign_name = r.get("campaign_name","").strip()
         # If no campaign name set, default to Christmas Lights (all old data)
         if not campaign_name:
-            campaign_name = "Christmas Lights"
+            campaign_name = "Holiday Lighting"
 
         row_data = {
             "date":        row_date,
@@ -276,11 +276,21 @@ def dashboard():
         live_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 
         # Attach lead counts to past ads via utm_content → ad_id
+        # Fallback: if no utm matches any ad_id, attribute unmatched leads
+        # to the campaign level (top ad gets them since we can't pinpoint)
         utm_counts_past = defaultdict(int)
         for r in past_leads:
             if r["utm"]: utm_counts_past[r["utm"]] += 1
+        matched_past = 0
         for ad in past_ads:
             ad["leads"] = utm_counts_past.get(ad["ad_id"], 0)
+            matched_past += ad["leads"]
+        unmatched_past = len(past_leads) - matched_past
+        if unmatched_past > 0 and past_ads:
+            # All unmatched leads belong to the single past campaign
+            # Attribute to the top-CTR ad (best performer)
+            top_ad = max(past_ads, key=lambda a: a["ctr"])
+            top_ad["leads"] += unmatched_past
         past_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 
         # Live = any live meta data exists

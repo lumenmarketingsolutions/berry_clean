@@ -274,7 +274,7 @@
         <p class="metric-sub">Link clicks</p>
       </div>
     </div>
-    <div class="grid grid-cols-3 gap-3">
+    <div class="grid grid-cols-3 gap-3" id="kpi-row-2">
       <div class="card card-hover p-4">
         <p class="metric-label">Avg CTR</p>
         <p class="metric-value mt-2" style="font-size:20px;" id="kpi-ctr">0.00%</p>
@@ -289,6 +289,13 @@
         <p class="metric-label">Avg CPM</p>
         <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpm">$0.00</p>
         <p class="metric-sub">Per 1k impressions</p>
+      </div>
+    </div>
+    <div id="kpi-cpl-row" class="grid grid-cols-1 gap-3 mt-3" style="display:none;">
+      <div class="card card-hover p-4" style="max-width:200px;">
+        <p class="metric-label">Cost Per Lead</p>
+        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpl">$0.00</p>
+        <p class="metric-sub">Total spend / leads</p>
       </div>
     </div>
   </div>
@@ -425,14 +432,11 @@ function renderAds(ads) {
       </div>
       <div class="m-ad-details" id="${id}">
         <div class="mini-stat"><p class="ad-stat-lbl">Leads</p><p class="ad-stat-val" style="color:var(--green);">${ad.leads}</p></div>
-        <div class="mini-stat"><p class="ad-stat-lbl">Spend</p><p class="ad-stat-val">$${Math.round(ad.spend)}</p></div>
+        <div class="mini-stat"><p class="ad-stat-lbl">Spend</p><p class="ad-stat-val">$${ad.spend.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}</p></div>
         <div class="mini-stat"><p class="ad-stat-lbl">CTR</p><p class="ad-stat-val">${ad.ctr.toFixed(2)}%</p></div>
         <div class="mini-stat"><p class="ad-stat-lbl">Clicks</p><p class="ad-stat-val">${ad.clicks.toLocaleString()}</p></div>
         <div class="mini-stat"><p class="ad-stat-lbl">Impr.</p><p class="ad-stat-val">${ad.impressions.toLocaleString()}</p></div>
-        <div class="mini-stat" style="cursor:pointer;" onclick="openCreative('${ad.ad_id}','${(ad.ad_name||'').replace(/'/g,"\\'")}')">
-          <p class="ad-stat-lbl">Creative</p>
-          <p style="font-size:12px;color:var(--red);font-weight:600;">View &rarr;</p>
-        </div>
+        ${ad.leads > 0 ? `<div class="mini-stat"><p class="ad-stat-lbl">Cost/Lead</p><p class="ad-stat-val">$${(ad.spend/ad.leads).toFixed(2)}</p></div>` : `<div class="mini-stat" style="cursor:pointer;" onclick="openCreative('${ad.ad_id}','${(ad.ad_name||'').replace(/'/g,"\\'")}')"><p class="ad-stat-lbl">Creative</p><p style="font-size:12px;color:var(--red);font-weight:600;">View &rarr;</p></div>`}
       </div>`;
   });
   mobileHTML += '</div>';
@@ -489,6 +493,17 @@ function updateKPIs(from,to){
   // Lead value color: green if leads > 0
   const leadsEl = document.getElementById('kpi-leads');
   leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
+
+  // Cost per lead (past campaigns only)
+  const cplRow = document.getElementById('kpi-cpl-row');
+  if (VIEW_MODE === 'past' && leads.length > 0) {
+    const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
+    const cpl = totalSpend / leads.length;
+    document.getElementById('kpi-cpl').textContent = '$'+fmt(cpl);
+    cplRow.style.display = 'grid';
+  } else {
+    cplRow.style.display = 'none';
+  }
 }
 
 function setFilter(preset,btn){

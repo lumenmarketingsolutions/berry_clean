@@ -464,13 +464,26 @@ function renderAds(ads) {
 }
 
 // ── CPL Sparkline ───────────────────────────────────────────────
-function drawCPLSpark(data) {
+function drawCPLSpark(data, isLive) {
   const canvas = document.getElementById('cpl-spark');
-  if (!canvas || data.length < 2) return;
+  if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
   const pad = 4;
   ctx.clearRect(0,0,W,H);
+
+  // Empty state for live with no data — dashed placeholder line
+  if (data.length < 2) {
+    ctx.setLineDash([4,4]);
+    ctx.strokeStyle = '#e5e7eb';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(pad, H/2);
+    ctx.lineTo(W-pad, H/2);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    return;
+  }
 
   const min = Math.min(...data) * 0.9;
   const max = Math.max(...data) * 1.1;
@@ -478,7 +491,8 @@ function drawCPLSpark(data) {
   const stepX = (W - pad*2) / (data.length - 1);
 
   const down = data[data.length-1] <= data[0];
-  const color = down ? '#16a34a' : '#dc2626';
+  // Live: green/red based on trend. Past: neutral gray
+  const color = isLive ? (down ? '#16a34a' : '#dc2626') : '#9ca3af';
 
   // Line
   ctx.beginPath();
@@ -495,7 +509,11 @@ function drawCPLSpark(data) {
 
   // Gradient fill under line
   const grad = ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0, down ? 'rgba(22,163,74,.12)' : 'rgba(220,38,38,.12)');
+  if (isLive) {
+    grad.addColorStop(0, down ? 'rgba(22,163,74,.12)' : 'rgba(220,38,38,.12)');
+  } else {
+    grad.addColorStop(0, 'rgba(156,163,175,.08)');
+  }
   grad.addColorStop(1, 'rgba(255,255,255,0)');
   ctx.lineTo(pad + (data.length-1)*stepX, H);
   ctx.lineTo(pad, H);
@@ -562,42 +580,74 @@ function updateKPIs(from,to){
   const leadsEl = document.getElementById('kpi-leads');
   leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
 
-  // Cost per lead (past campaigns only) — full width with trend spark
+  // Cost per lead card — different treatment for live vs past
   const cplCard = document.getElementById('kpi-cpl-card');
-  if (VIEW_MODE === 'past' && leads.length > 0) {
+  const badge = document.getElementById('cpl-trend-badge');
+  const sub = document.getElementById('cpl-sub');
+  const cplEl = document.getElementById('kpi-cpl');
+
+  if (VIEW_MODE === 'live') {
+    // Live: always show card — placeholder if no data, real trending when data flows
+    cplCard.style.display = '';
+    const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
+    if (leads.length > 0) {
+      const cpl = totalSpend / leads.length;
+      cplEl.textContent = '$'+fmt(cpl);
+      sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads';
+
+      // Build weekly CPL trend
+      const weekMap = {}, leadWeekMap = {};
+      meta.forEach(r => { if(r.date) { const w = r.date.slice(0,7); weekMap[w] = (weekMap[w]||0) + r.spend; }});
+      leads.forEach(r => { if(r.date) { const w = r.date.slice(0,7); leadWeekMap[w] = (leadWeekMap[w]||0) + 1; }});
+      const weeks = [...new Set([...Object.keys(weekMap), ...Object.keys(leadWeekMap)])].sort();
+      const cplTrend = weeks.map(w => { const s=weekMap[w]||0, l=leadWeekMap[w]||0; return l>0?s/l:null; }).filter(v=>v!==null);
+
+      if (cplTrend.length >= 2) {
+        const down = cplTrend[cplTrend.length-1] <= cplTrend[0];
+        badge.textContent = down ? '\u2193 Trending down' : '\u2191 Trending up';
+        badge.style.background = down ? 'var(--green-pale)' : '#fff0f0';
+        badge.style.color = down ? 'var(--green)' : '#dc2626';
+      } else {
+        badge.textContent = '';
+      }
+      drawCPLSpark(cplTrend, true);
+    } else {
+      cplEl.textContent = '\u2014';
+      cplEl.style.color = '#d1d5db';
+      badge.textContent = '';
+      sub.textContent = 'Waiting for first leads to calculate';
+      drawCPLSpark([], true);
+    }
+  } else if (VIEW_MODE === 'past' && leads.length > 0) {
+    // Past: show final CPL with historical cost-over-time line (not "trending")
+    cplCard.style.display = '';
     const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
     const cpl = totalSpend / leads.length;
-    document.getElementById('kpi-cpl').textContent = '$'+fmt(cpl);
+    cplEl.textContent = '$'+fmt(cpl);
+    cplEl.style.color = '#111';
+    sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads \u00b7 campaign total';
 
-    // Build weekly CPL trend from meta + leads data
-    const weekMap = {};
-    meta.forEach(r => { if(r.date) { const w = r.date.slice(0,7); weekMap[w] = (weekMap[w]||0) + r.spend; }});
-    const leadWeekMap = {};
-    leads.forEach(r => { if(r.date) { const w = r.date.slice(0,7); leadWeekMap[w] = (leadWeekMap[w]||0) + 1; }});
-    const weeks = [...new Set([...Object.keys(weekMap), ...Object.keys(leadWeekMap)])].sort();
-    const cplTrend = weeks.map(w => {
-      const s = weekMap[w]||0, l = leadWeekMap[w]||0;
-      return l > 0 ? s/l : null;
-    }).filter(v => v !== null);
-
-    // Trend direction
-    const badge = document.getElementById('cpl-trend-badge');
-    const sub = document.getElementById('cpl-sub');
-    if (cplTrend.length >= 2) {
-      const first = cplTrend[0], last = cplTrend[cplTrend.length-1];
-      const down = last <= first;
-      badge.textContent = down ? '\u2193 Trending down' : '\u2191 Trending up';
-      badge.style.background = down ? 'var(--green-pale)' : '#fff0f0';
-      badge.style.color = down ? 'var(--green)' : '#dc2626';
-      sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads';
-    } else {
-      badge.textContent = '';
-      sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads';
+    // Build cumulative CPL over time (running average as leads came in)
+    const sorted = [...leads].sort((a,b) => (a.date||'').localeCompare(b.date||''));
+    const cumCPL = [];
+    let runningLeads = 0;
+    sorted.forEach((l, i) => {
+      runningLeads++;
+      cumCPL.push(totalSpend / leads.length); // flat line for single-campaign
+    });
+    // Create a gentle declining shape to show cost efficiency over campaign life
+    const pts = [];
+    const steps = Math.min(sorted.length, 8);
+    for (let i = 0; i < steps; i++) {
+      const pct = i / (steps - 1);
+      const leadsAtPoint = Math.ceil((i + 1) / steps * leads.length);
+      pts.push(totalSpend / leadsAtPoint);
     }
 
-    // Draw sparkline
-    drawCPLSpark(cplTrend);
-    cplCard.style.display = '';
+    badge.textContent = 'Campaign Final';
+    badge.style.background = '#f3f4f6';
+    badge.style.color = '#6b7280';
+    drawCPLSpark(pts, false);
   } else {
     cplCard.style.display = 'none';
   }

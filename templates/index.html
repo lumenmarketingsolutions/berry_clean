@@ -169,12 +169,16 @@
     </div>
   </div>
   <div class="flex items-center gap-3">
-    <button id="past-campaigns-btn" onclick="showPast()" style="font-size:11px;font-weight:600;color:#9ca3af;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:4px 12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
-      View Past Campaigns
-    </button>
     <a href="/logout" style="font-size:11px;color:#9ca3af;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:999px;">Sign out</a>
   </div>
 </header>
+
+<!-- View Past Campaigns — pinned top-right below header -->
+<div style="max-width:80rem;margin:0 auto;padding:8px 20px 0;display:flex;justify-content:flex-end;">
+  <button id="past-campaigns-btn" onclick="showPast()" style="font-size:11px;font-weight:600;color:#9ca3af;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:5px 14px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
+    View Past Campaigns
+  </button>
+</div>
 
 <main class="max-w-5xl mx-auto px-4 py-8 space-y-6">
 

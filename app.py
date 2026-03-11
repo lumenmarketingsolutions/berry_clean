@@ -288,8 +288,8 @@ def dashboard():
         unmatched_past = len(past_leads) - matched_past
         if unmatched_past > 0 and past_ads:
             # All unmatched leads belong to the single past campaign
-            # Attribute to the top-CTR ad (best performer)
-            top_ad = max(past_ads, key=lambda a: a["ctr"])
+            # Attribute to the top-spend ad (primary creative)
+            top_ad = max(past_ads, key=lambda a: a["spend"])
             top_ad["leads"] += unmatched_past
         past_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 

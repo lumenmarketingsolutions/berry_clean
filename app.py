@@ -35,7 +35,7 @@ def init_db():
     for email, name in [("avesta70@gmail.com", "Reza"), ("bre@avalon-laser.com", "Bre")]:
         con.execute("INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)", (email, name))
     # Berry Clean client
-    con.execute("INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)", ("spencer@berryclean.com", "Spencer"))
+    con.execute("INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)", ("berrycleanidaho@gmail.com", "Spencer"))
     con.commit()
     con.close()
 

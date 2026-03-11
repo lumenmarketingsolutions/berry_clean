@@ -274,7 +274,7 @@
         <p class="metric-sub">Link clicks</p>
       </div>
     </div>
-    <div class="grid grid-cols-3 gap-3" id="kpi-row-2">
+    <div id="kpi-row-2" class="grid grid-cols-3 gap-3">
       <div class="card card-hover p-4">
         <p class="metric-label">Avg CTR</p>
         <p class="metric-value mt-2" style="font-size:20px;" id="kpi-ctr">0.00%</p>
@@ -290,9 +290,7 @@
         <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpm">$0.00</p>
         <p class="metric-sub">Per 1k impressions</p>
       </div>
-    </div>
-    <div id="kpi-cpl-row" class="grid grid-cols-1 gap-3 mt-3" style="display:none;">
-      <div class="card card-hover p-4" style="max-width:200px;">
+      <div class="card card-hover p-4" id="kpi-cpl-card" style="display:none;">
         <p class="metric-label">Cost Per Lead</p>
         <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpl">$0.00</p>
         <p class="metric-sub">Total spend / leads</p>
@@ -498,15 +496,18 @@ function updateKPIs(from,to){
   const leadsEl = document.getElementById('kpi-leads');
   leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
 
-  // Cost per lead (past campaigns only)
-  const cplRow = document.getElementById('kpi-cpl-row');
+  // Cost per lead (past campaigns only) — inline as 4th card
+  const cplCard = document.getElementById('kpi-cpl-card');
+  const row2 = document.getElementById('kpi-row-2');
   if (VIEW_MODE === 'past' && leads.length > 0) {
     const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
     const cpl = totalSpend / leads.length;
     document.getElementById('kpi-cpl').textContent = '$'+fmt(cpl);
-    cplRow.style.display = 'grid';
+    cplCard.style.display = '';
+    row2.style.gridTemplateColumns = 'repeat(4, 1fr)';
   } else {
-    cplRow.style.display = 'none';
+    cplCard.style.display = 'none';
+    row2.style.gridTemplateColumns = 'repeat(3, 1fr)';
   }
 }
 

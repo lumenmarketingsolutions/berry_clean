@@ -77,10 +77,6 @@
   <h1>Berry Clean</h1>
   <p class="sub">Performance Dashboard</p>
 
-  <div id="update-notice" style="display:none; background:#fff0f0; border:1px solid var(--red-border); border-radius:12px; padding:10px 14px; margin-bottom:20px; gap:10px; align-items:flex-start;">
-    <span style="font-size:15px; flex-shrink:0;">✨</span>
-    <p style="font-size:12px; color:#c08080; line-height:1.5; margin:0;">We've made some updates! Please re-enter your email to continue — it only takes a second.</p>
-  </div>
 
   <div class="input-group">
     <label>Email</label>
@@ -121,12 +117,8 @@ const QUIPS = [
 
 // ── Auto-login logic ──
 (function() {
-  const noticeSeen = localStorage.getItem('bc_notice_seen');
   const savedEmail = localStorage.getItem('bc_email');
-  if (!noticeSeen) {
-    localStorage.removeItem('bc_email');
-    document.getElementById('update-notice').style.display = 'flex';
-  } else if (savedEmail) {
+  if (savedEmail) {
     document.getElementById('email').value = savedEmail;
     document.getElementById('login-card').style.opacity = '0';
     submitLogin(savedEmail, '');
@@ -160,7 +152,6 @@ async function submitLogin(email, name) {
   }
   if (!data.ok) { showError(data.error || 'Something went wrong.'); return; }
   localStorage.setItem('bc_email', email);
-  localStorage.setItem('bc_notice_seen', '1');
   sessionStorage.setItem('skip_welcome', '1');
   document.getElementById('login-card').classList.add('hide');
   data.new_user ? runBerryAnimation(data.name) : showWelcome(data.name);

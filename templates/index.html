@@ -289,10 +289,19 @@
         <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpm">$0.00</p>
         <p class="metric-sub">Per 1k impressions</p>
       </div>
-      <div class="card card-hover p-4" id="kpi-cpl-card" style="display:none;">
-        <p class="metric-label">Cost Per Lead</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpl">$0.00</p>
-        <p class="metric-sub">Total spend / leads</p>
+    </div>
+    <!-- Cost Per Lead — full width card with trend -->
+    <div class="card card-hover mt-3" id="kpi-cpl-card" style="display:none;padding:16px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p class="metric-label">Cost Per Lead</p>
+          <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px;">
+            <p style="font-size:24px;font-weight:700;color:#111;" id="kpi-cpl">$0.00</p>
+            <span id="cpl-trend-badge" style="font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px;"></span>
+          </div>
+          <p class="metric-sub" style="margin-top:4px;" id="cpl-sub">Total spend / leads</p>
+        </div>
+        <canvas id="cpl-spark" width="120" height="40" style="opacity:.7;"></canvas>
       </div>
     </div>
   </div>
@@ -450,6 +459,55 @@ function renderAds(ads) {
   container.innerHTML = desktopHTML + mobileHTML;
 }
 
+// ── CPL Sparkline ───────────────────────────────────────────────
+function drawCPLSpark(data) {
+  const canvas = document.getElementById('cpl-spark');
+  if (!canvas || data.length < 2) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 4;
+  ctx.clearRect(0,0,W,H);
+
+  const min = Math.min(...data) * 0.9;
+  const max = Math.max(...data) * 1.1;
+  const range = max - min || 1;
+  const stepX = (W - pad*2) / (data.length - 1);
+
+  const down = data[data.length-1] <= data[0];
+  const color = down ? '#16a34a' : '#dc2626';
+
+  // Line
+  ctx.beginPath();
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  data.forEach((v, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (1 - (v - min) / range) * (H - pad*2);
+    i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Gradient fill under line
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, down ? 'rgba(22,163,74,.12)' : 'rgba(220,38,38,.12)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.lineTo(pad + (data.length-1)*stepX, H);
+  ctx.lineTo(pad, H);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // End dot
+  const lastX = pad + (data.length-1)*stepX;
+  const lastY = pad + (1 - (data[data.length-1] - min) / range) * (H - pad*2);
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 3, 0, Math.PI*2);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
 // ── Creative modal ──────────────────────────────────────────────
 const PLACEHOLDER='https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=480&q=80';
 function openCreative(adId, adName) {
@@ -500,18 +558,44 @@ function updateKPIs(from,to){
   const leadsEl = document.getElementById('kpi-leads');
   leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
 
-  // Cost per lead (past campaigns only) — inline as 4th card
+  // Cost per lead (past campaigns only) — full width with trend spark
   const cplCard = document.getElementById('kpi-cpl-card');
-  const row2 = document.getElementById('kpi-row-2');
   if (VIEW_MODE === 'past' && leads.length > 0) {
     const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
     const cpl = totalSpend / leads.length;
     document.getElementById('kpi-cpl').textContent = '$'+fmt(cpl);
+
+    // Build weekly CPL trend from meta + leads data
+    const weekMap = {};
+    meta.forEach(r => { if(r.date) { const w = r.date.slice(0,7); weekMap[w] = (weekMap[w]||0) + r.spend; }});
+    const leadWeekMap = {};
+    leads.forEach(r => { if(r.date) { const w = r.date.slice(0,7); leadWeekMap[w] = (leadWeekMap[w]||0) + 1; }});
+    const weeks = [...new Set([...Object.keys(weekMap), ...Object.keys(leadWeekMap)])].sort();
+    const cplTrend = weeks.map(w => {
+      const s = weekMap[w]||0, l = leadWeekMap[w]||0;
+      return l > 0 ? s/l : null;
+    }).filter(v => v !== null);
+
+    // Trend direction
+    const badge = document.getElementById('cpl-trend-badge');
+    const sub = document.getElementById('cpl-sub');
+    if (cplTrend.length >= 2) {
+      const first = cplTrend[0], last = cplTrend[cplTrend.length-1];
+      const down = last <= first;
+      badge.textContent = down ? '\u2193 Trending down' : '\u2191 Trending up';
+      badge.style.background = down ? 'var(--green-pale)' : '#fff0f0';
+      badge.style.color = down ? 'var(--green)' : '#dc2626';
+      sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads';
+    } else {
+      badge.textContent = '';
+      sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads';
+    }
+
+    // Draw sparkline
+    drawCPLSpark(cplTrend);
     cplCard.style.display = '';
-    row2.style.gridTemplateColumns = 'repeat(4, 1fr)';
   } else {
     cplCard.style.display = 'none';
-    row2.style.gridTemplateColumns = 'repeat(3, 1fr)';
   }
 }
 

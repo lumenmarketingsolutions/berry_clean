@@ -628,7 +628,7 @@ function updateKPIs(from,to){
     const cpl = totalSpend / leads.length;
     cplEl.textContent = '$'+fmt(cpl);
     cplEl.style.color = '#111';
-    sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads \u00b7 campaign total';
+    sub.textContent = '$'+Math.round(totalSpend).toLocaleString()+' / '+leads.length+' leads';
 
     // Build cumulative CPL over time (running average as leads came in)
     const sorted = [...leads].sort((a,b) => (a.date||'').localeCompare(b.date||''));

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Berry Clean — Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root { --red:#f4271f; --red-pale:#fff0f0; --red-border:#ffc8c6; }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Inter',sans-serif; }
+    body { background:#fff8f8; min-height:100vh; display:flex; align-items:center; justify-content:center; overflow:hidden; }
+
+    .card { background:#fff; border:1px solid var(--red-border); border-radius:24px; padding:40px 36px; width:100%; max-width:380px; box-shadow:0 8px 40px rgba(244,39,31,.08); transition:opacity .35s, transform .35s; position:relative; z-index:10; }
+    .card.hide { opacity:0; transform:scale(.97); pointer-events:none; }
+    .logo-wrap { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:20px; }
+    .logo-wrap img { height:44px; }
+    h1 { font-size:22px; font-weight:700; color:#1a0505; text-align:center; margin-bottom:6px; }
+    .sub { font-size:14px; color:#c08080; text-align:center; margin-bottom:28px; }
+
+    #update-notice { display:none; background:#fff0f0; border:1px solid var(--red-border); border-radius:12px; padding:10px 14px; margin-bottom:20px; gap:10px; align-items:flex-start; }
+    label { font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:#c08080; display:block; margin-bottom:6px; }
+    input { width:100%; padding:12px 14px; border:1px solid var(--red-border); border-radius:12px; font-size:14px; color:#1a0505; background:#fff; outline:none; transition:border .2s, box-shadow .2s; }
+    input:focus { border-color:var(--red); box-shadow:0 0 0 3px rgba(244,39,31,.1); }
+    .input-group { margin-bottom:16px; }
+    #name-group { overflow:hidden; max-height:0; opacity:0; transition:max-height .4s ease, opacity .3s ease; }
+    #name-group.visible { max-height:80px; opacity:1; }
+    .btn { width:100%; padding:13px; border-radius:12px; background:var(--red); color:#fff; font-size:14px; font-weight:600; border:none; cursor:pointer; margin-top:4px; transition:background .2s, transform .1s; }
+    .btn:hover { background:#d41f18; }
+    .btn:active { transform:scale(.98); }
+    .btn:disabled { opacity:.5; cursor:not-allowed; }
+    .hint { font-size:12px; color:#c08080; text-align:center; margin-top:14px; }
+    .error-msg { font-size:13px; color:#dc2626; text-align:center; margin-top:10px; display:none; }
+
+    /* ── Overlay ── */
+    #overlay {
+      position:fixed; inset:0; z-index:200; background:#fff;
+      display:none; align-items:center; justify-content:center;
+      overflow:hidden;
+    }
+    #overlay.show { display:flex; }
+
+    /* Falling berries */
+    #berry-canvas { position:absolute; inset:0; width:100%; height:100%; }
+
+    /* Welcome */
+    #welcome-content {
+      position:absolute; inset:0; z-index:3;
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+      opacity:0; pointer-events:none;
+      transform:translateY(28px);
+      transition:opacity .6s ease, transform .6s cubic-bezier(.25,.8,.25,1);
+    }
+    #welcome-content.in { opacity:1; transform:translateY(0); }
+    .wf-logo { height:52px; margin-bottom:6px; }
+    #wf-brand { font-size:11px; font-weight:600; letter-spacing:.15em; text-transform:uppercase; color:#c08080; opacity:0; transition:opacity .4s .1s; }
+    #welcome-content.in #wf-brand { opacity:1; }
+    #wf-headline { font-size:42px; font-weight:700; color:#1a0505; letter-spacing:-.02em; line-height:1.1; opacity:0; transition:opacity .4s .18s; max-width:340px; text-align:center; }
+    #welcome-content.in #wf-headline { opacity:1; }
+    #wf-quip { font-size:14px; color:#c08080; max-width:260px; text-align:center; line-height:1.55; padding:0 16px; opacity:0; transition:opacity .4s .3s; margin-top:6px; }
+    #welcome-content.in #wf-quip { opacity:1; }
+  </style>
+</head>
+<body>
+
+<div class="card" id="login-card">
+  <div class="logo-wrap">
+    <img src="/static/berry-clean-logo.png" alt="Berry Clean" onerror="this.style.display='none'; document.getElementById('fallback-logo').style.display='flex'"/>
+    <div id="fallback-logo" style="display:none; width:44px; height:44px; background:var(--red); border-radius:12px; align-items:center; justify-content:center;">
+      <svg width="26" height="26" viewBox="0 0 32 32" fill="white">
+        <path d="M16 4 C16 4 10 2 8 8 C6 14 10 18 16 28 C22 18 26 14 24 8 C22 2 16 4 16 4Z"/>
+        <circle cx="13" cy="14" r="1.5" fill="rgba(255,255,255,0.5)"/>
+        <circle cx="17" cy="17" r="1.2" fill="rgba(255,255,255,0.5)"/>
+        <circle cx="19" cy="13" r="1" fill="rgba(255,255,255,0.5)"/>
+      </svg>
+    </div>
+  </div>
+  <h1>Berry Clean</h1>
+  <p class="sub">Performance Dashboard</p>
+
+  <div id="update-notice" style="display:none; background:#fff0f0; border:1px solid var(--red-border); border-radius:12px; padding:10px 14px; margin-bottom:20px; gap:10px; align-items:flex-start;">
+    <span style="font-size:15px; flex-shrink:0;">✨</span>
+    <p style="font-size:12px; color:#c08080; line-height:1.5; margin:0;">We've made some updates! Please re-enter your email to continue — it only takes a second.</p>
+  </div>
+
+  <div class="input-group">
+    <label>Email</label>
+    <input type="email" id="email" placeholder="you@example.com" autocomplete="email"/>
+  </div>
+  <div class="input-group" id="name-group">
+    <label>Your Name</label>
+    <input type="text" id="name" placeholder="First name" autocomplete="given-name"/>
+  </div>
+  <button class="btn" id="submit-btn" onclick="handleSubmit()">Continue</button>
+  <p class="error-msg" id="error-msg"></p>
+  <p class="hint" id="hint-text">Enter your email to get started</p>
+</div>
+
+<div id="overlay">
+  <canvas id="berry-canvas"></canvas>
+  <div id="welcome-content">
+    <img class="wf-logo" src="/static/berry-clean-logo.png" alt="Berry Clean" onerror="this.style.display='none'"/>
+    <p id="wf-brand">Berry Clean</p>
+    <p id="wf-headline"></p>
+    <p id="wf-quip"></p>
+  </div>
+</div>
+
+<script>
+const QUIPS = [
+  "Your window's clearest view yet.",
+  "Streak-free data. Just like the windows.",
+  "Clean numbers. Clean glass.",
+  "The results are in — and they're spotless.",
+  "Data as clear as a freshly cleaned pane.",
+  "No streaks here — just results.",
+  "Your campaign's looking crystal clear.",
+  "Fresh data, fresh start.",
+  "Cleaner numbers than a January window.",
+  "Squeaky clean performance, incoming."
+];
+
+// ── Auto-login logic ──
+(function() {
+  const noticeSeen = localStorage.getItem('bc_notice_seen');
+  const savedEmail = localStorage.getItem('bc_email');
+  if (!noticeSeen) {
+    localStorage.removeItem('bc_email');
+    document.getElementById('update-notice').style.display = 'flex';
+  } else if (savedEmail) {
+    document.getElementById('email').value = savedEmail;
+    document.getElementById('login-card').style.opacity = '0';
+    submitLogin(savedEmail, '');
+  }
+})();
+
+document.getElementById('email').addEventListener('keydown', e => { if(e.key==='Enter') handleSubmit(); });
+document.getElementById('name').addEventListener('keydown',  e => { if(e.key==='Enter') handleSubmit(); });
+
+async function handleSubmit() {
+  const email = document.getElementById('email').value.trim();
+  const name  = document.getElementById('name').value.trim();
+  if (!email) { showError('Please enter your email.'); return; }
+  document.getElementById('error-msg').style.display = 'none';
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true; btn.textContent = '...';
+  await submitLogin(email, name);
+  btn.disabled = false; btn.textContent = 'Continue';
+}
+
+async function submitLogin(email, name) {
+  const res  = await fetch('/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email,name}) });
+  const data = await res.json();
+  if (!data.ok && data.needs_name) {
+    document.getElementById('login-card').style.opacity = '1';
+    document.getElementById('name-group').classList.add('visible');
+    document.getElementById('name').focus();
+    document.getElementById('hint-text').textContent = "Almost there — just your first name.";
+    document.getElementById('submit-btn').textContent = 'Create Account';
+    return;
+  }
+  if (!data.ok) { showError(data.error || 'Something went wrong.'); return; }
+  localStorage.setItem('bc_email', email);
+  localStorage.setItem('bc_notice_seen', '1');
+  sessionStorage.setItem('skip_welcome', '1');
+  document.getElementById('login-card').classList.add('hide');
+  data.new_user ? runBerryAnimation(data.name) : showWelcome(data.name);
+}
+
+function showError(msg) { const e=document.getElementById('error-msg'); e.textContent=msg; e.style.display='block'; }
+
+// ── Falling strawberry animation ──
+function runBerryAnimation(name) {
+  const overlay = document.getElementById('overlay');
+  overlay.classList.add('show');
+  const canvas = document.getElementById('berry-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W = canvas.width  = window.innerWidth;
+  let H = canvas.height = window.innerHeight;
+
+  // Berry SVG path drawn on canvas
+  function drawBerry(ctx, x, y, size, rotation, opacity) {
+    ctx.save();
+    ctx.globalAlpha = opacity;
+    ctx.translate(x, y);
+    ctx.rotate(rotation);
+    ctx.scale(size / 30, size / 30);
+
+    // Stem
+    ctx.strokeStyle = '#2d7a1f';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(0, -18);
+    ctx.quadraticCurveTo(6, -22, 4, -28);
+    ctx.stroke();
+
+    // Leaves
+    ctx.fillStyle = '#3a9e28';
+    ctx.beginPath();
+    ctx.ellipse(-4, -20, 5, 2.5, -0.4, 0, Math.PI*2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(4, -21, 5, 2.5, 0.4, 0, Math.PI*2);
+    ctx.fill();
+
+    // Berry body
+    ctx.fillStyle = '#f4271f';
+    ctx.beginPath();
+    ctx.moveTo(0, -16);
+    ctx.bezierCurveTo(-14, -14, -16, -4, -14, 4);
+    ctx.bezierCurveTo(-12, 12, -6, 18, 0, 20);
+    ctx.bezierCurveTo(6, 18, 12, 12, 14, 4);
+    ctx.bezierCurveTo(16, -4, 14, -14, 0, -16);
+    ctx.fill();
+
+    // Shine
+    ctx.fillStyle = 'rgba(255,255,255,0.28)';
+    ctx.beginPath();
+    ctx.ellipse(-4, -6, 4, 7, -0.4, 0, Math.PI*2);
+    ctx.fill();
+
+    // Seeds
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    [[-5,0],[0,4],[5,1],[-3,8],[3,9],[0,14]].forEach(([sx,sy]) => {
+      ctx.beginPath();
+      ctx.ellipse(sx, sy, 1.2, 1.8, 0.3, 0, Math.PI*2);
+      ctx.fill();
+    });
+
+    ctx.restore();
+  }
+
+  // Create berries
+  const berries = Array.from({length:22}, () => ({
+    x:       Math.random() * W,
+    y:       -60 - Math.random() * H,
+    size:    20 + Math.random() * 22,
+    speed:   1.8 + Math.random() * 2.2,
+    wobble:  (Math.random() - 0.5) * 1.2,
+    rot:     Math.random() * Math.PI * 2,
+    rotSpeed:(Math.random() - 0.5) * 0.04,
+    phase:   Math.random() * Math.PI * 2,
+    opacity: 0.7 + Math.random() * 0.3,
+  }));
+
+  let t = 0, raf;
+  function draw() {
+    ctx.clearRect(0,0,W,H);
+    let allGone = true;
+    berries.forEach(b => {
+      b.y   += b.speed;
+      b.x   += Math.sin(t * 0.04 + b.phase) * b.wobble;
+      b.rot += b.rotSpeed;
+      if (b.y < H + 80) allGone = false;
+      drawBerry(ctx, b.x, b.y, b.size, b.rot, b.opacity);
+    });
+    t++;
+    if (!allGone) {
+      raf = requestAnimationFrame(draw);
+    } else {
+      cancelAnimationFrame(raf);
+      showWelcome(name);
+    }
+  }
+  raf = requestAnimationFrame(draw);
+
+  // Don't wait for all berries — transition to welcome after 2s
+  setTimeout(() => {
+    cancelAnimationFrame(raf);
+    canvas.style.transition = 'opacity .5s';
+    canvas.style.opacity = '0';
+    showWelcome(name);
+  }, 2200);
+
+  setTimeout(() => { window.location.href = '/'; }, 4800);
+}
+
+function showWelcome(name) {
+  document.getElementById('berry-canvas').style.display = 'none';
+  document.getElementById('wf-headline').textContent = 'Welcome, ' + name;
+  document.getElementById('wf-quip').textContent = QUIPS[Math.floor(Math.random()*QUIPS.length)];
+  setTimeout(() => { document.getElementById('welcome-content').classList.add('in'); }, 60);
+  setTimeout(() => { window.location.href = '/'; }, 2600);
+}
+</script>
+</body>
+</html>

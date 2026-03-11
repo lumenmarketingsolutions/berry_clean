@@ -1,0 +1,5 @@
+flask
+flask-login
+gspread
+google-auth
+gunicorn

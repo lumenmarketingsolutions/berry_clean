@@ -167,11 +167,11 @@ function runBerryAnimation(name) {
   let W = canvas.width  = window.innerWidth;
   let H = canvas.height = window.innerHeight;
 
-  const GRAVITY    = 0.45;
-  const BOUNCE     = 0.55;
-  const FRICTION   = 0.98;
+  const GRAVITY    = 0.18;
+  const BOUNCE     = 0.45;
+  const FRICTION   = 0.96;
   const FLOOR      = H - 20;
-  const BERRY_COUNT = 60;
+  const BERRY_COUNT = 40;
 
   // Berry Clean outlined strawberry (matches the logo style)
   function drawBerry(ctx, x, y, size, rotation, opacity) {
@@ -182,11 +182,11 @@ function runBerryAnimation(name) {
     const s = size / 30;
     ctx.scale(s, s);
 
-    ctx.lineWidth = 2.2;
+    ctx.lineWidth = 3;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // Berry body outline
+    // Berry body outline — thick and prominent
     ctx.strokeStyle = '#f4271f';
     ctx.beginPath();
     ctx.moveTo(0, -14);
@@ -197,9 +197,9 @@ function runBerryAnimation(name) {
     ctx.closePath();
     ctx.stroke();
 
-    // Heart-shaped leaf (like the logo)
+    // Heart-shaped leaf
     ctx.strokeStyle = '#f4271f';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2.8;
     ctx.beginPath();
     ctx.moveTo(0, -14);
     ctx.bezierCurveTo(-3, -18, -9, -22, -6, -27);
@@ -209,9 +209,9 @@ function runBerryAnimation(name) {
     ctx.closePath();
     ctx.stroke();
 
-    // Seed lines (diagonal marks like the logo)
+    // Seed lines
     ctx.strokeStyle = '#f4271f';
-    ctx.lineWidth = 1.4;
+    ctx.lineWidth = 1.6;
     const seeds = [[-6,-2],[-2,3],[4,0],[-4,9],[2,10],[6,6],[0,15]];
     seeds.forEach(([sx,sy]) => {
       ctx.beginPath();
@@ -223,18 +223,22 @@ function runBerryAnimation(name) {
     ctx.restore();
   }
 
-  // Create a dramatic dump of berries — staggered waves
+  // Berries trickle in like pouring from a bucket — spread over time
   const berries = [];
+  const spawnQueue = [];
   for (let i = 0; i < BERRY_COUNT; i++) {
-    const wave = Math.floor(i / 20); // 3 waves of 20
-    berries.push({
-      x:        Math.random() * W,
-      y:        -40 - Math.random() * 300 - wave * 150,
-      size:     18 + Math.random() * 26,
-      vy:       3 + Math.random() * 4,
-      vx:       (Math.random() - 0.5) * 2,
+    // Stagger spawns: each berry enters ~80ms apart with some randomness
+    // Cluster slightly toward center-ish with spread
+    const spawnX = (W * 0.2) + Math.random() * (W * 0.6);
+    spawnQueue.push({
+      delay: i * 80 + Math.random() * 60,
+      x:        spawnX,
+      y:        -30 - Math.random() * 60,
+      size:     20 + Math.random() * 24,
+      vy:       1.2 + Math.random() * 1.8,
+      vx:       (Math.random() - 0.5) * 2.5,
       rot:      Math.random() * Math.PI * 2,
-      rotSpeed: (Math.random() - 0.5) * 0.08,
+      rotSpeed: (Math.random() - 0.5) * 0.05,
       opacity:  0.75 + Math.random() * 0.25,
       bounces:  0,
       grounded: false,
@@ -244,6 +248,15 @@ function runBerryAnimation(name) {
   let raf, startTime = Date.now();
   function draw() {
     ctx.clearRect(0, 0, W, H);
+    const elapsed = Date.now() - startTime;
+
+    // Spawn berries from queue as their delay passes
+    for (let i = spawnQueue.length - 1; i >= 0; i--) {
+      if (elapsed >= spawnQueue[i].delay) {
+        berries.push(spawnQueue[i]);
+        spawnQueue.splice(i, 1);
+      }
+    }
 
     berries.forEach(b => {
       if (b.grounded) {
@@ -281,10 +294,8 @@ function runBerryAnimation(name) {
       drawBerry(ctx, b.x, b.y, b.size, b.rot, b.opacity);
     });
 
-    const elapsed = Date.now() - startTime;
-
-    // After 3.5s, start fading and show welcome
-    if (elapsed > 3500) {
+    // After 5s, start fading and show welcome
+    if (elapsed > 5000) {
       canvas.style.transition = 'opacity .8s';
       canvas.style.opacity = '0';
       showWelcome(name);
@@ -296,7 +307,7 @@ function runBerryAnimation(name) {
   raf = requestAnimationFrame(draw);
 
   // Navigate to dashboard after animation + welcome
-  setTimeout(() => { window.location.href = '/'; }, 6500);
+  setTimeout(() => { window.location.href = '/'; }, 8000);
 }
 
 function showWelcome(name) {

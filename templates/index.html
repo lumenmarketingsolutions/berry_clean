@@ -74,7 +74,7 @@
     .mini-stat { background:#f9fafb; border:1px solid #e5e7eb; border-radius:10px; padding:8px; text-align:center; }
 
     /* Past campaign banner */
-    #past-banner { display:none; background:linear-gradient(135deg,#1a0505,#3d0c0c); border-radius:16px; padding:16px 20px; margin-bottom:4px; }
+    #past-banner { display:none; background:linear-gradient(135deg,#1a0505,#3d0c0c); border-radius:16px; padding:12px 18px; margin-bottom:2px; }
 
     /* Construction banner */
 
@@ -169,6 +169,9 @@
     </div>
   </div>
   <div class="flex items-center gap-3">
+    <button id="past-campaigns-btn" onclick="showPast()" style="font-size:11px;font-weight:600;color:#9ca3af;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:4px 12px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
+      View Past Campaigns
+    </button>
     <a href="/logout" style="font-size:11px;color:#9ca3af;text-decoration:none;padding:4px 10px;border:1px solid #e5e7eb;border-radius:999px;">Sign out</a>
   </div>
 </header>
@@ -195,18 +198,13 @@
     let VIEW_MODE = 'live'; // 'live' or 'past'
   </script>
 
-  <!-- Campaign switcher + live badge -->
-  <div class="flex items-center justify-between flex-wrap gap-3">
-    <div id="live-badge">
-      {% if is_live %}
-      <span class="badge-live badge-live-on"><span class="live-dot-green"></span>Window Washing &mdash; Live</span>
-      {% else %}
-      <span class="badge-live badge-live-off"><span class="live-dot-yellow"></span>Window Washing &middot; In Progress</span>
-      {% endif %}
-    </div>
-    <button id="past-campaigns-btn" onclick="showPast()" style="font-size:12px;font-weight:600;color:#9ca3af;background:#f3f4f6;border:1px solid #e5e7eb;border-radius:999px;padding:6px 14px;cursor:pointer;transition:all .15s;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
-      View Past Campaigns
-    </button>
+  <!-- Live badge -->
+  <div id="live-badge">
+    {% if is_live %}
+    <span class="badge-live badge-live-on"><span class="live-dot-green"></span>Window Washing &mdash; Live</span>
+    {% else %}
+    <span class="badge-live badge-live-off"><span class="live-dot-yellow"></span>Window Washing &middot; In Progress</span>
+    {% endif %}
   </div>
 
   <!-- Construction status banner -->
@@ -220,11 +218,10 @@
   <div id="past-banner">
     <div class="flex items-center justify-between">
       <div>
-        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.5);">Viewing Past Campaign</p>
-        <p style="font-size:18px;font-weight:700;color:#fff;margin-top:2px;">&#127876; Holiday Lighting 2025</p>
-        <p style="font-size:12px;color:rgba(255,255,255,.5);margin-top:2px;">November &ndash; December 2025</p>
+        <p style="font-size:16px;font-weight:700;color:#fff;">&#127876; Holiday Lighting 2025</p>
+        <p style="font-size:11px;color:rgba(255,255,255,.45);margin-top:2px;">November &ndash; December 2025</p>
       </div>
-      <button onclick="showLive()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:7px 16px;font-size:12px;font-weight:600;cursor:pointer;">&larr; Back to Live</button>
+      <button onclick="showLive()" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:999px;padding:6px 14px;font-size:11px;font-weight:600;cursor:pointer;">&larr; Back to Live</button>
     </div>
   </div>
 

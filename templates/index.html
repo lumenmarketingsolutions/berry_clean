@@ -255,7 +255,7 @@
 
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
       <div class="card card-hover p-4">
-        <p class="metric-label">Fresh Leads</p>
+        <p class="metric-label" id="kpi-leads-label">Fresh Leads</p>
         <p class="metric-value-green mt-2" id="kpi-leads">0</p>
         <div id="kpi-leads-sub"><div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div></div>
       </div>
@@ -575,6 +575,9 @@ function updateKPIs(from,to){
   document.getElementById('kpi-leads-sub').innerHTML = leads.length===0
     ? '<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>'
     : '<p class="metric-sub">Inbound inquiries</p>';
+
+  // Lead label: "Fresh Leads" for live, "Leads" for past
+  document.getElementById('kpi-leads-label').textContent = VIEW_MODE === 'live' ? 'Fresh Leads' : 'Leads';
 
   // Lead value color: green if leads > 0
   const leadsEl = document.getElementById('kpi-leads');

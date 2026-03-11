@@ -193,21 +193,23 @@
     let VIEW_MODE = 'live'; // 'live' or 'past'
   </script>
 
-  <!-- Status row: badge left, past campaigns right -->
-  <div id="live-row" style="display:flex;align-items:center;justify-content:space-between;">
-    <div id="live-badge">
-      {% if is_live %}
-      <span class="badge-live badge-live-on" style="white-space:nowrap;"><span class="live-dot-green"></span>Window Washing &mdash; Live</span>
-      {% else %}
-      <span class="badge-live badge-live-off" onclick="toggleStatusMsg()" style="cursor:pointer;white-space:nowrap;">
-        <span class="live-dot-yellow"></span>Window Washing &middot; In Progress
-        <span id="status-info-icon" style="margin-left:2px;font-size:9px;opacity:.4;transition:transform .2s;">&#9660;</span>
-      </span>
-      {% endif %}
-    </div>
-    <button id="past-campaigns-btn" onclick="showPast()" style="font-size:11px;font-weight:600;color:#9ca3af;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:5px 14px;cursor:pointer;transition:all .15s;flex-shrink:0;white-space:nowrap;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
+  <!-- View Past Campaigns — top right -->
+  <div id="past-btn-row" style="display:flex;justify-content:flex-end;">
+    <button id="past-campaigns-btn" onclick="showPast()" style="font-size:11px;font-weight:600;color:#9ca3af;background:#fff;border:1px solid #e5e7eb;border-radius:999px;padding:5px 14px;cursor:pointer;transition:all .15s;white-space:nowrap;" onmouseover="this.style.color='#111'" onmouseout="this.style.color='#9ca3af'">
       View Past Campaigns
     </button>
+  </div>
+
+  <!-- Live badge — left aligned below -->
+  <div id="live-badge" style="margin-top:-4px;">
+    {% if is_live %}
+    <span class="badge-live badge-live-on" style="white-space:nowrap;"><span class="live-dot-green"></span>Window Washing &mdash; Live</span>
+    {% else %}
+    <span class="badge-live badge-live-off" onclick="toggleStatusMsg()" style="cursor:pointer;white-space:nowrap;">
+      <span class="live-dot-yellow"></span>Window Washing &middot; In Progress
+      <span id="status-info-icon" style="margin-left:2px;font-size:9px;opacity:.4;transition:transform .2s;">&#9660;</span>
+    </span>
+    {% endif %}
   </div>
 
   <!-- Status message (collapsed, revealed by tapping badge) -->
@@ -367,7 +369,8 @@ function toggleStatusMsg() {
 function showPast() {
   VIEW_MODE = 'past';
   document.getElementById('past-banner').style.display='block';
-  document.getElementById('live-row').style.display='none';
+  document.getElementById('past-btn-row').style.display='none';
+  document.getElementById('live-badge').style.display='none';
   document.getElementById('construction-banner').style.display='none';
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.df-pill')[4].classList.add('active');
@@ -378,7 +381,8 @@ function showPast() {
 function showLive() {
   VIEW_MODE = 'live';
   document.getElementById('past-banner').style.display='none';
-  document.getElementById('live-row').style.display='flex';
+  document.getElementById('past-btn-row').style.display='flex';
+  document.getElementById('live-badge').style.display='';
   document.getElementById('construction-banner').style.display='none';
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.df-pill')[4].classList.add('active');

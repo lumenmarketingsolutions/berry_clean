@@ -381,7 +381,7 @@
     <section id="lead-health-section" class="card overflow-hidden" style="display:none;">
       <div id="health-header" class="px-5 py-4" style="border-bottom:1px solid #f3f4f6;">
         <div class="flex items-center gap-3">
-          <p class="section-label" style="margin-bottom:0;">&#127827; Lead Health</p>
+          <p class="section-label" style="margin-bottom:0;">Lead Health</p>
           <span id="health-badge" class="health-status health-warming">
             <span class="health-dot health-dot-amber"></span>
             Warming Up
@@ -1201,13 +1201,13 @@ function updateLeadHealth(from, to) {
 
   if (VIEW_MODE === 'past') {
     badge.className = 'health-status health-cold';
-    badge.innerHTML = '&#127827; Campaign Complete';
+    badge.innerHTML = 'Campaign Complete';
   } else if (numConverted > 0 && roas >= 1) {
     badge.className = 'health-status health-healthy';
-    badge.innerHTML = '&#127827; Printing';
+    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Printing';
   } else if (numConverted > 0) {
     badge.className = 'health-status health-converting';
-    badge.innerHTML = '&#127827; Converting';
+    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Converting';
   } else if (totalLeads > 0) {
     badge.className = 'health-status health-warming';
     badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Pipeline Active';

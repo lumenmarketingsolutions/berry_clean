@@ -450,14 +450,14 @@
 
         <!-- Empty state -->
         <div id="health-empty" style="text-align:center;padding:8px 0;">
-          <p style="font-size:13px;color:#bbb;">&#127827; No conversions yet</p>
+          <p style="font-size:13px;color:#bbb;">No conversions yet</p>
           <p style="font-size:11px;color:#d1d5db;margin-top:4px;">Revenue and conversion data will appear as leads convert to jobs</p>
         </div>
       </div>
     </section>
 
     <!-- Campaign Performance — hero metrics -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4 mt-4">
+    <div class="grid grid-cols-3 gap-3 mb-4 mt-4">
       <div class="card card-hover p-4">
         <p class="metric-label" id="kpi-leads-label">Fresh Leads</p>
         <p class="metric-value-green mt-2" id="kpi-leads">0</p>
@@ -473,20 +473,38 @@
         <p class="metric-value mt-2" style="font-size:22px;" id="kpi-clicks">0</p>
         <p class="metric-sub">Link clicks</p>
       </div>
-      <div class="card card-hover p-4" id="kpi-cpl-card" style="display:none;">
-        <p class="metric-label">Cost Per Lead</p>
-        <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;">
-          <p style="font-size:22px;font-weight:700;color:#111;" id="kpi-cpl">$0.00</p>
-          <span id="cpl-trend-badge" style="font-size:10px;font-weight:600;border-radius:999px;padding:2px 6px;"></span>
+    </div>
+
+    <!-- CPL — full width between hero cards and ad efficiency -->
+    <div class="card card-hover mb-4" id="kpi-cpl-card" style="display:none;padding:16px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p class="metric-label">Cost Per Lead</p>
+          <div style="display:flex;align-items:baseline;gap:8px;margin-top:6px;">
+            <p style="font-size:24px;font-weight:700;color:#111;" id="kpi-cpl">$0.00</p>
+            <span id="cpl-trend-badge" style="font-size:10px;font-weight:600;border-radius:999px;padding:2px 6px;"></span>
+          </div>
+          <p class="metric-sub" style="margin-top:4px;" id="cpl-sub">Spend / leads</p>
         </div>
-        <p class="metric-sub" id="cpl-sub">Spend / leads</p>
+        <canvas id="cpl-spark" width="180" height="44" style="opacity:.8;"></canvas>
+      </div>
+    </div>
+    <!-- CPL placeholder (no leads yet) -->
+    <div class="card card-hover mb-4" id="kpi-cpl-spark-card" style="display:none;padding:16px 20px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <div>
+          <p class="metric-label">Cost Per Lead</p>
+          <p style="font-size:24px;font-weight:700;color:#d1d5db;margin-top:6px;">&mdash;</p>
+          <p class="metric-sub" style="margin-top:4px;" id="cpl-spark-sub">Tracking starts when leads come in</p>
+        </div>
+        <canvas id="cpl-spark-placeholder" width="180" height="44" style="opacity:.8;"></canvas>
       </div>
     </div>
 
     <!-- Ad Efficiency — visual cards -->
     <div class="card card-hover mb-3" style="padding:16px 20px;">
       <div class="flex items-center justify-between mb-3">
-        <p class="section-label" style="margin-bottom:0;">&#127827; Ad Efficiency</p>
+        <p class="section-label" style="margin-bottom:0;">Ad Efficiency</p>
       </div>
       <div class="grid grid-cols-3 gap-4">
         <!-- CTR gauge -->
@@ -538,7 +556,7 @@
   <!-- Ad Rankings -->
   <section class="card overflow-hidden" id="ad-rankings-section">
     <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
-      <p class="section-label" style="margin-bottom:0;">&#127827; Ad Rankings</p>
+      <p class="section-label" style="margin-bottom:0;">Ad Rankings</p>
       <span class="text-xs" style="color:#bbb;" id="ad-rankings-meta">leads first, then CTR</span>
     </div>
 
@@ -553,7 +571,7 @@
 </main>
 
 <footer style="border-top:1px solid #e5e7eb;background:#fff;" class="px-5 py-4 mt-8 text-center">
-  <p class="text-xs" style="color:#ddd;">&#127827; Berry Clean &copy; 2026 &middot; Powered by Lumen</p>
+  <p class="text-xs" style="color:#ddd;">Berry Clean &copy; 2026 &middot; Powered by Lumen</p>
 </footer>
 
 <script>
@@ -781,7 +799,7 @@ function drawCPLSpark(data, isLive, endLabel) {
 }
 
 function drawCPLSparkPlaceholder() {
-  const canvas = document.getElementById('cpl-spark');
+  const canvas = document.getElementById('cpl-spark-placeholder');
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   const W = canvas.width, H = canvas.height;
@@ -944,14 +962,12 @@ function updateKPIs(from,to){
     const weeks = [...new Set([...Object.keys(weekMap), ...Object.keys(leadWeekMap)])].sort();
     const cplTrend = weeks.map(w => { const s=weekMap[w]||0, l=leadWeekMap[w]||0; return l>0?s/l:null; }).filter(v=>v!==null);
 
+    cplSparkCard.style.display = 'none'; // hide placeholder when we have data
+
     if (VIEW_MODE === 'past') {
-      // Past: always show a downward trending CPL line
-      cplSparkCard.style.display = '';
-      document.getElementById('cpl-spark-sub').textContent = 'Cost per lead over time';
       trendBadge.textContent = '\u2193';
       trendBadge.style.background = 'var(--green-pale)';
       trendBadge.style.color = 'var(--green)';
-      // Build a natural downward curve: CPL drops as more leads come in
       const steps = 8;
       const finalCPL = totalSpendCPL / leads.length;
       const pastCPLTrend = [];
@@ -961,24 +977,18 @@ function updateKPIs(from,to){
       }
       drawCPLSpark(pastCPLTrend, false, finalCPL);
     } else if (cplTrend.length >= 2) {
-      cplSparkCard.style.display = '';
       const down = cplTrend[cplTrend.length-1] <= cplTrend[0];
       trendBadge.textContent = down ? '\u2193' : '\u2191';
       trendBadge.style.background = down ? 'var(--green-pale)' : '#fff0f0';
       trendBadge.style.color = down ? 'var(--green)' : '#dc2626';
       drawCPLSpark(cplTrend, true);
     } else {
-      cplSparkCard.style.display = 'none';
       trendBadge.textContent = '';
+      drawCPLSpark([], true);
     }
   } else if (VIEW_MODE === 'live') {
-    cplCard.style.display = '';
-    cplEl.textContent = '\u2014';
-    cplEl.style.color = '#d1d5db';
-    trendBadge.textContent = '';
-    sub.textContent = 'Awaiting leads';
-    cplSparkCard.style.display = '';
-    document.getElementById('cpl-spark-sub').textContent = 'Tracking starts when leads come in';
+    cplCard.style.display = 'none'; // hide real CPL card
+    cplSparkCard.style.display = ''; // show placeholder
     drawCPLSparkPlaceholder();
   } else {
     cplCard.style.display = 'none';

@@ -457,7 +457,7 @@
     </section>
 
     <!-- Campaign Performance — hero metrics -->
-    <div class="grid grid-cols-3 gap-3 mb-3 mt-5">
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3 mt-5">
       <div class="card card-hover p-4">
         <p class="metric-label" id="kpi-leads-label">Fresh Leads</p>
         <p class="metric-value-green mt-2" id="kpi-leads">0</p>
@@ -467,6 +467,11 @@
         <p class="metric-label">Total Spend</p>
         <p class="metric-value mt-2" style="font-size:22px;" id="kpi-spend">$0.00</p>
         <p class="metric-sub">Meta ads</p>
+      </div>
+      <div class="card card-hover p-4">
+        <p class="metric-label">Clicks</p>
+        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-clicks">0</p>
+        <p class="metric-sub">Link clicks</p>
       </div>
       <div class="card card-hover p-4" id="kpi-cpl-card" style="display:none;">
         <p class="metric-label">Cost Per Lead</p>
@@ -483,7 +488,7 @@
       <div class="flex items-center justify-between mb-3">
         <p class="section-label" style="margin-bottom:0;">Ad Efficiency</p>
       </div>
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div class="grid grid-cols-3 gap-4">
         <!-- CTR gauge -->
         <div style="text-align:center;">
           <div style="position:relative;width:56px;height:56px;margin:0 auto 6px;">
@@ -511,12 +516,6 @@
           </div>
           <p class="metric-label">CPM</p>
         </div>
-        <!-- Reach: impressions + clicks -->
-        <div style="text-align:center;">
-          <p style="font-size:20px;font-weight:700;color:#111;" id="kpi-impressions">0</p>
-          <p style="font-size:12px;color:var(--green);font-weight:600;margin-top:2px;" id="kpi-clicks-inline">0 clicks</p>
-          <p class="metric-label" style="margin-top:4px;">Reach</p>
-        </div>
       </div>
     </div>
 
@@ -533,7 +532,7 @@
 
     <!-- Hidden elements for JS compatibility -->
     <span id="kpi-ctr" style="display:none;">0.00%</span>
-    <span id="kpi-clicks" style="display:none;">0</span>
+    <span id="kpi-impressions" style="display:none;">0</span>
   </div>
 
   <!-- Ad Rankings -->
@@ -793,6 +792,7 @@ function dateRange(preset){
 }
 function filterRows(rows,from,to){if(!from&&!to)return rows;return rows.filter(r=>r.date&&r.date>=from&&r.date<=to);}
 function fmt(n,d=2){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function fmtCompact(n){if(n>=1000000)return '$'+(n/1000000).toFixed(1)+'M';if(n>=10000)return '$'+(n/1000).toFixed(1)+'K';if(n>=1000)return '$'+(n/1000).toFixed(2)+'K';return '$'+fmt(n);}
 
 function updateKPIs(from,to){
   const metaSrc  = VIEW_MODE==='live' ? RAW_META_LIVE  : RAW_META_PAST;
@@ -802,7 +802,8 @@ function updateKPIs(from,to){
   const leads = filterRows(leadsSrc, from, to);
 
   document.getElementById('kpi-leads').textContent = leads.length.toLocaleString();
-  document.getElementById('kpi-spend').textContent = '$'+fmt(meta.reduce((s,r)=>s+r.spend,0));
+  const rawSpend = meta.reduce((s,r)=>s+r.spend,0);
+  document.getElementById('kpi-spend').textContent = fmtCompact(rawSpend);
   document.getElementById('kpi-impressions').textContent = meta.reduce((s,r)=>s+r.impressions,0).toLocaleString();
   document.getElementById('kpi-clicks').textContent = meta.reduce((s,r)=>s+r.clicks,0).toLocaleString();
   const avgCtr = meta.length ? meta.reduce((s,r)=>s+r.ctr,0)/meta.length : 0;
@@ -811,8 +812,6 @@ function updateKPIs(from,to){
   document.getElementById('kpi-ctr').textContent = fmt(avgCtr)+'%';
   document.getElementById('kpi-cpc').textContent = '$'+fmt(avgCpc);
   document.getElementById('kpi-cpm').textContent = '$'+fmt(avgCpm);
-  document.getElementById('kpi-clicks-inline').textContent = meta.reduce((s,r)=>s+r.clicks,0).toLocaleString() + ' clicks';
-
   // CTR gauge
   const ctrGaugeArc = document.getElementById('ctr-gauge-arc');
   const ctrGaugeVal = document.getElementById('ctr-gauge-val');

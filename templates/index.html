@@ -89,6 +89,39 @@
       .header-hide-mobile { display:none !important; }
     }
 
+    /* Lead Health section */
+    .health-status { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; border-radius:999px; padding:4px 12px; }
+    .health-healthy  { background:var(--green-pale); color:var(--green); border:1px solid var(--green-border); }
+    .health-warming  { background:#fefce8; color:#854d0e; border:1px solid #fde047; }
+    .health-needs    { background:#fff0f0; color:#dc2626; border:1px solid #fca5a5; }
+    .health-dot { width:7px; height:7px; border-radius:50%; animation:pulse 2s infinite; flex-shrink:0; }
+    .health-dot-green  { background:var(--green); }
+    .health-dot-amber  { background:#eab308; }
+    .health-dot-red    { background:#dc2626; }
+
+    .funnel-bar { height:8px; border-radius:999px; transition:width .6s ease; }
+    .funnel-container { position:relative; height:8px; border-radius:999px; background:#f3f4f6; overflow:hidden; }
+    .funnel-fill { position:absolute; left:0; top:0; height:100%; border-radius:999px; transition:width .8s cubic-bezier(.4,0,.2,1); }
+    .funnel-fill-leads { background:linear-gradient(90deg, #d1d5db, #9ca3af); }
+    .funnel-fill-conv  { background:linear-gradient(90deg, var(--green), #22c55e); }
+
+    .revenue-glow { position:relative; }
+    .revenue-glow::after {
+      content:''; position:absolute; inset:-4px; border-radius:20px;
+      background:linear-gradient(135deg, rgba(22,163,74,.06), rgba(22,163,74,.02));
+      pointer-events:none; z-index:0;
+    }
+
+    .roas-ring { width:64px; height:64px; border-radius:50%; position:relative; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .roas-ring svg { position:absolute; inset:0; transform:rotate(-90deg); }
+    .roas-ring-val { font-size:13px; font-weight:700; z-index:1; }
+
+    .conv-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f3f4f6; }
+    .conv-item:last-child { border-bottom:none; }
+    .conv-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
+    .conv-avatar-green { background:var(--green-pale); color:var(--green); border:1px solid var(--green-border); }
+    .conv-avatar-gray  { background:#f3f4f6; color:#9ca3af; border:1px solid #e5e7eb; }
+
     /* Upload portal — floating icon (mobile-friendly) */
     #upload-portal-fab {
       position:fixed; bottom:24px; left:24px; z-index:400;
@@ -276,6 +309,8 @@
     const RAW_META_PAST  = {{ raw_meta_past  | tojson }};
     const RAW_LEADS_LIVE = {{ live_leads     | tojson }};
     const RAW_LEADS_PAST = {{ past_leads     | tojson }};
+    const LIVE_CONV      = {{ live_conversions | tojson }};
+    const PAST_CONV      = {{ past_conversions | tojson }};
     const IS_LIVE        = {{ is_live | tojson }};
     const LAUNCH_DATE    = "{{ launch_date }}";
     const LIVE_ADS       = {{ live_ads  | tojson }};
@@ -395,6 +430,87 @@
     </div>
   </div>
 
+  <!-- Lead Health -->
+  <section id="lead-health-section" class="card overflow-hidden" style="display:none;">
+    <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
+      <div class="flex items-center gap-3">
+        <p class="section-label" style="margin-bottom:0;">Lead Health</p>
+        <span id="health-badge" class="health-status health-warming">
+          <span class="health-dot health-dot-amber"></span>
+          Warming Up
+        </span>
+      </div>
+      <span class="text-xs" style="color:#bbb;" id="health-meta">leads → conversions → revenue</span>
+    </div>
+
+    <div class="px-5 py-4">
+      <!-- Revenue + ROAS hero row -->
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+        <div class="card card-hover p-4 revenue-glow" style="position:relative;z-index:1;">
+          <p class="metric-label">Revenue</p>
+          <p class="metric-value-green mt-2" id="health-revenue">$0</p>
+          <p class="metric-sub" id="health-revenue-sub">From converted leads</p>
+        </div>
+        <div class="card card-hover p-4" style="display:flex;align-items:center;gap:14px;">
+          <div class="roas-ring" id="roas-ring">
+            <svg viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+              <circle id="roas-arc" cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" stroke-width="5" stroke-dasharray="175.93" stroke-dashoffset="175.93" stroke-linecap="round"/>
+            </svg>
+            <span class="roas-ring-val" id="roas-val">0.0x</span>
+          </div>
+          <div>
+            <p class="metric-label">ROAS</p>
+            <p class="metric-sub" style="margin-top:2px;" id="roas-sub">Return on ad spend</p>
+          </div>
+        </div>
+        <div class="card card-hover p-4">
+          <p class="metric-label">Converted</p>
+          <p class="metric-value mt-2" style="font-size:22px;" id="health-converted">0</p>
+          <p class="metric-sub" id="health-conv-sub">Booked / paid jobs</p>
+        </div>
+        <div class="card card-hover p-4">
+          <p class="metric-label">Conversion Rate</p>
+          <p class="metric-value mt-2" style="font-size:22px;" id="health-conv-rate">0%</p>
+          <p class="metric-sub" id="health-rate-sub">Leads that converted</p>
+        </div>
+      </div>
+
+      <!-- Funnel visualization -->
+      <div class="mb-4" id="health-funnel-wrap">
+        <div class="flex items-center justify-between mb-2">
+          <div class="flex items-center gap-3">
+            <div class="flex items-center gap-1">
+              <span style="width:10px;height:10px;border-radius:2px;background:#9ca3af;display:inline-block;"></span>
+              <span style="font-size:11px;color:#9ca3af;font-weight:500;">Leads</span>
+            </div>
+            <div class="flex items-center gap-1">
+              <span style="width:10px;height:10px;border-radius:2px;background:var(--green);display:inline-block;"></span>
+              <span style="font-size:11px;color:#9ca3af;font-weight:500;">Converted</span>
+            </div>
+          </div>
+          <span style="font-size:11px;color:#bbb;font-weight:500;" id="funnel-ratio">0 / 0</span>
+        </div>
+        <div class="funnel-container">
+          <div class="funnel-fill funnel-fill-leads" id="funnel-leads" style="width:0%;"></div>
+          <div class="funnel-fill funnel-fill-conv" id="funnel-conv" style="width:0%;"></div>
+        </div>
+      </div>
+
+      <!-- Recent conversions list -->
+      <div id="health-conv-list" style="display:none;">
+        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;">Recent Conversions</p>
+        <div id="conv-list-items"></div>
+      </div>
+
+      <!-- Empty state -->
+      <div id="health-empty" style="text-align:center;padding:8px 0;">
+        <p style="font-size:13px;color:#bbb;">No conversions yet</p>
+        <p style="font-size:11px;color:#d1d5db;margin-top:4px;">Revenue and conversion data will appear as leads convert to jobs</p>
+      </div>
+    </div>
+  </section>
+
   <!-- Ad Rankings -->
   <section class="card overflow-hidden" id="ad-rankings-section">
     <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
@@ -476,6 +592,7 @@ function showPast() {
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.df-pill')[4].classList.add('active');
   updateKPIs(null, null);
+  updateLeadHealth(null, null);
   renderAds(PAST_ADS);
 }
 
@@ -485,6 +602,7 @@ function showLive() {
   document.querySelectorAll('.df-pill').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.df-pill')[4].classList.add('active');
   updateKPIs(null, null);
+  updateLeadHealth(null, null);
   renderAds(LIVE_ADS);
 }
 
@@ -762,12 +880,13 @@ function setFilter(preset,btn){
   pop.classList.remove('show');
   const[from,to]=dateRange(preset);
   updateKPIs(from,to);
+  updateLeadHealth(from,to);
 }
 function applyCustom(){
   const from=document.getElementById('df-from').value;
   const to=document.getElementById('df-to').value||from;
   document.getElementById('date-popover').classList.remove('show');
-  if(from)updateKPIs(from,to);
+  if(from){updateKPIs(from,to);updateLeadHealth(from,to);}
 }
 document.addEventListener('click',e=>{
   const pop=document.getElementById('date-popover');
@@ -808,6 +927,27 @@ function buildInsights() {
     insights.push({type:'info', label:'Past Data', text:`${pastLeads} leads from Holiday Lighting are saved under "View Past Campaigns." Your new Window Washing campaign starts fresh.`});
   }
 
+  // Revenue insights
+  const convData = VIEW_MODE === 'live' ? LIVE_CONV : PAST_CONV;
+  const totalRev = convData.reduce((s,c) => s + c.revenue, 0);
+  const numConv = convData.filter(c => c.converted).length;
+  const metaData = VIEW_MODE === 'live' ? RAW_META_LIVE : RAW_META_PAST;
+  const totalSp = metaData.reduce((s,r) => s + r.spend, 0);
+  const currentROAS = totalSp > 0 ? totalRev / totalSp : 0;
+
+  if (totalRev > 0) {
+    insights.push({type:'win', label:'Revenue', text:`$${totalRev.toLocaleString('en-US',{minimumFractionDigits:2})} in revenue from ${numConv} converted lead${numConv!==1?'s':''}. ROAS is ${currentROAS.toFixed(1)}x.`});
+    if (currentROAS >= 3) {
+      insights.push({type:'win', label:'Strong ROAS', text:`${currentROAS.toFixed(1)}x return — every dollar spent is generating $${currentROAS.toFixed(2)} back. The funnel is working.`});
+    } else if (currentROAS >= 1) {
+      insights.push({type:'info', label:'ROAS Building', text:`${currentROAS.toFixed(1)}x return — you're profitable. As more leads convert, this number will climb.`});
+    } else if (currentROAS > 0) {
+      insights.push({type:'soon', label:'ROAS Below 1x', text:`Current ROAS is ${currentROAS.toFixed(1)}x. Early stage — conversions take time. Monitor as more leads move through the pipeline.`});
+    }
+  } else if (convData.length > 0) {
+    insights.push({type:'info', label:'Pipeline Active', text:`${convData.length} lead${convData.length!==1?'s':''} in the pipeline but no revenue yet. Conversions take time — watch this space.`});
+  }
+
   insights.push({type:'soon', label:'Coming Soon', text:"Once Window Washing has live data, I'll start giving you real creative breakdowns and audience insights."});
 
   return insights;
@@ -832,9 +972,131 @@ document.addEventListener('click', e => {
   if (!panel.contains(e.target) && !btn.contains(e.target)) panel.classList.remove('show');
 });
 
+// ── Lead Health ──────────────────────────────────────────────────
+function updateLeadHealth(from, to) {
+  const section = document.getElementById('lead-health-section');
+  const convSrc  = VIEW_MODE === 'live' ? LIVE_CONV : PAST_CONV;
+  const leadsSrc = VIEW_MODE === 'live' ? RAW_LEADS_LIVE : RAW_LEADS_PAST;
+  const metaSrc  = VIEW_MODE === 'live' ? RAW_META_LIVE : RAW_META_PAST;
+
+  // Always show section when live, or when past has data
+  if (VIEW_MODE === 'live' || convSrc.length > 0 || leadsSrc.length > 0) {
+    section.style.display = '';
+  } else {
+    section.style.display = 'none';
+    return;
+  }
+
+  const conv  = filterRows(convSrc, from, to);
+  const leads = filterRows(leadsSrc, from, to);
+  const meta  = filterRows(metaSrc, from, to);
+
+  const totalLeads = leads.length;
+  const converted  = conv.filter(c => c.converted);
+  const numConverted = converted.length;
+  const totalRevenue = conv.reduce((s, c) => s + c.revenue, 0);
+  const totalSpend   = meta.reduce((s, r) => s + r.spend, 0);
+  const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0;
+  const convRate = totalLeads > 0 ? (numConverted / totalLeads * 100) : 0;
+
+  // Revenue
+  document.getElementById('health-revenue').textContent = '$' + totalRevenue.toLocaleString('en-US', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  document.getElementById('health-revenue').className = totalRevenue > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
+  document.getElementById('health-revenue-sub').textContent = numConverted > 0
+    ? numConverted + ' converted job' + (numConverted !== 1 ? 's' : '')
+    : 'From converted leads';
+
+  // ROAS
+  const roasVal = document.getElementById('roas-val');
+  roasVal.textContent = roas.toFixed(1) + 'x';
+  roasVal.style.color = roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : '#dc2626';
+  document.getElementById('roas-sub').textContent = totalSpend > 0
+    ? '$' + fmt(totalRevenue) + ' / $' + fmt(totalSpend)
+    : 'Return on ad spend';
+
+  // ROAS ring animation
+  const arc = document.getElementById('roas-arc');
+  const circumference = 175.93; // 2 * PI * 28
+  const roasCapped = Math.min(roas / 5, 1); // 5x = full ring
+  arc.style.strokeDashoffset = circumference * (1 - roasCapped);
+  arc.style.stroke = roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : roas > 0 ? '#eab308' : '#e5e7eb';
+  arc.style.transition = 'stroke-dashoffset .8s cubic-bezier(.4,0,.2,1), stroke .3s';
+
+  // Converted count
+  document.getElementById('health-converted').textContent = numConverted;
+  document.getElementById('health-converted').style.color = numConverted > 0 ? 'var(--green)' : '#111';
+  document.getElementById('health-conv-sub').textContent = conv.length > 0
+    ? conv.length + ' total lead' + (conv.length !== 1 ? 's' : '') + ' in pipeline'
+    : 'Booked / paid jobs';
+
+  // Conversion rate
+  document.getElementById('health-conv-rate').textContent = convRate > 0 ? convRate.toFixed(1) + '%' : '0%';
+  document.getElementById('health-conv-rate').style.color = convRate >= 20 ? 'var(--green)' : convRate >= 10 ? '#111' : convRate > 0 ? '#854d0e' : '#111';
+  document.getElementById('health-rate-sub').textContent = totalLeads > 0
+    ? numConverted + ' of ' + totalLeads + ' leads'
+    : 'Leads that converted';
+
+  // Funnel bar
+  document.getElementById('funnel-leads').style.width = '100%';
+  document.getElementById('funnel-conv').style.width = totalLeads > 0 ? (numConverted / totalLeads * 100) + '%' : '0%';
+  document.getElementById('funnel-ratio').textContent = numConverted + ' / ' + totalLeads;
+
+  // Health badge
+  const badge = document.getElementById('health-badge');
+  if (numConverted > 0 && convRate >= 10) {
+    badge.className = 'health-status health-healthy';
+    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Healthy';
+  } else if (totalLeads > 0 && numConverted > 0) {
+    badge.className = 'health-status health-warming';
+    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Converting';
+  } else if (totalLeads > 0) {
+    badge.className = 'health-status health-warming';
+    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Leads Coming In';
+  } else {
+    badge.className = 'health-status health-warming';
+    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Warming Up';
+  }
+
+  // Recent conversions list
+  const listWrap = document.getElementById('health-conv-list');
+  const emptyWrap = document.getElementById('health-empty');
+  const listItems = document.getElementById('conv-list-items');
+
+  if (conv.length > 0) {
+    listWrap.style.display = '';
+    emptyWrap.style.display = 'none';
+
+    const sorted = [...conv].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const show = sorted.slice(0, 5);
+    listItems.innerHTML = show.map(c => {
+      const initials = c.name ? c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
+      const isConv = c.converted;
+      const avatarClass = isConv ? 'conv-avatar-green' : 'conv-avatar-gray';
+      const statusText = isConv ? '$' + c.revenue.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : c.job_status || 'Pending';
+      const statusColor = isConv ? 'var(--green)' : '#9ca3af';
+      return `<div class="conv-item">
+        <div class="conv-avatar ${avatarClass}">${initials}</div>
+        <div style="flex:1;min-width:0;">
+          <p class="text-sm font-medium truncate" style="color:#111;">${c.name || 'Unknown'}</p>
+          <p style="font-size:11px;color:#bbb;">${c.job_status || 'N/A'}${c.date ? ' · ' + c.date : ''}</p>
+        </div>
+        <span style="font-size:13px;font-weight:600;color:${statusColor};white-space:nowrap;">${statusText}</span>
+      </div>`;
+    }).join('');
+
+    if (sorted.length > 5) {
+      listItems.innerHTML += `<p style="text-align:center;font-size:11px;color:#bbb;padding:8px 0;">+${sorted.length - 5} more</p>`;
+    }
+  } else {
+    listWrap.style.display = 'none';
+    emptyWrap.style.display = '';
+  }
+}
+
 // ── Initial render ──────────────────────────────────────────────
 showBanner('live');
 updateKPIs(null, null);
+updateLeadHealth(null, null);
 renderAds(LIVE_ADS);
 
 // ── Auto-refresh every 5 mins ────────────────────────────────────

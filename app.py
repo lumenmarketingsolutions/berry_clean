@@ -287,6 +287,72 @@ def fetch_leads():
 
     return live_leads, past_leads
 
+def fetch_conversions():
+    """Return (live_conversions, past_conversions) from Conversion_Leads_Data.
+    Each conversion is a dict with: name, email, job_status, revenue, date, utm."""
+    sheet = open_sheet()
+    try:
+        ws = sheet.worksheet("Conversion_Leads_Data")
+    except gspread.exceptions.WorksheetNotFound:
+        return [], []
+    all_values = ws.get_all_values()
+    if not all_values:
+        return [], []
+    headers = [h.strip().lower().replace(" ", "_") for h in all_values[0]]
+
+    def col(name):
+        for i, h in enumerate(headers):
+            if name in h:
+                return i
+        return None
+
+    first_name_idx = col("first_name")
+    last_name_idx  = col("last_name")
+    status_idx     = col("job_status")
+    value_idx      = col("converted_lead_value")
+    date_idx       = col("date_sot")
+    utm_idx        = col("utm_content")
+    job_id_idx     = col("job_id")
+
+    def parse_money(v):
+        try:
+            return float(str(v).replace(",", "").replace("$", "").strip() or "0")
+        except:
+            return 0.0
+
+    seen_jobs = set()
+    live_conv, past_conv = [], []
+    for row in all_values[1:]:
+        if not any(c.strip() for c in row):
+            continue
+        job_id = row[job_id_idx].strip() if job_id_idx is not None and job_id_idx < len(row) else ""
+        if not job_id or job_id in seen_jobs:
+            continue
+        seen_jobs.add(job_id)
+
+        first = row[first_name_idx].strip() if first_name_idx is not None and first_name_idx < len(row) else ""
+        last  = row[last_name_idx].strip()  if last_name_idx  is not None and last_name_idx  < len(row) else ""
+        status = row[status_idx].strip()    if status_idx     is not None and status_idx     < len(row) else ""
+        revenue = parse_money(row[value_idx] if value_idx is not None and value_idx < len(row) else "0")
+        raw_date = row[date_idx].strip()    if date_idx       is not None and date_idx       < len(row) else ""
+        utm     = row[utm_idx].strip()      if utm_idx        is not None and utm_idx        < len(row) else ""
+        lead_date = parse_date(raw_date[:10])
+
+        conv = {
+            "name": f"{first} {last}".strip(),
+            "job_status": status,
+            "revenue": revenue,
+            "converted": revenue > 0,
+            "date": lead_date,
+            "utm": utm,
+        }
+        if lead_date and lead_date >= LAUNCH_DATE:
+            live_conv.append(conv)
+        else:
+            past_conv.append(conv)
+
+    return live_conv, past_conv
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 @app.route("/")
 @login_required
@@ -294,6 +360,7 @@ def dashboard():
     try:
         live_ads, raw_meta_live, past_ads, raw_meta_past = fetch_meta_data()
         live_leads, past_leads = fetch_leads()
+        live_conversions, past_conversions = fetch_conversions()
 
         # Attach lead counts to live ads via utm_content → ad_id
         utm_counts_live = defaultdict(int)
@@ -304,8 +371,6 @@ def dashboard():
         live_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 
         # Attach lead counts to past ads via utm_content → ad_id
-        # Fallback: if no utm matches any ad_id, attribute unmatched leads
-        # to the campaign level (top ad gets them since we can't pinpoint)
         utm_counts_past = defaultdict(int)
         for r in past_leads:
             if r["utm"]: utm_counts_past[r["utm"]] += 1
@@ -315,8 +380,6 @@ def dashboard():
             matched_past += ad["leads"]
         unmatched_past = len(past_leads) - matched_past
         if unmatched_past > 0 and past_ads:
-            # All unmatched leads belong to the single past campaign
-            # Attribute to the top-spend ad (primary creative)
             top_ad = max(past_ads, key=lambda a: a["spend"])
             top_ad["leads"] += unmatched_past
         past_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
@@ -329,12 +392,14 @@ def dashboard():
         live_ads, past_ads = [], []
         raw_meta_live, raw_meta_past = [], []
         live_leads, past_leads = [], []
+        live_conversions, past_conversions = [], []
         is_live = False
         error = str(exc)
 
     return render_template("index.html",
         live_ads=live_ads, past_ads=past_ads,
         live_leads=live_leads, past_leads=past_leads,
+        live_conversions=live_conversions, past_conversions=past_conversions,
         raw_meta_live=raw_meta_live, raw_meta_past=raw_meta_past,
         is_live=is_live, launch_date=LAUNCH_DATE,
         error=error, user_name=current_user.name

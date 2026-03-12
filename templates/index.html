@@ -186,8 +186,7 @@
     /* Creative modal */
     #creative-modal { display:none; position:fixed; inset:0; z-index:500; background:rgba(0,0,0,.45); align-items:center; justify-content:center; padding:20px; }
     #creative-modal.show { display:flex; }
-    .modal-card { background:#fff; border-radius:20px; padding:24px; max-width:480px; width:100%; }
-    .modal-img { width:100%; border-radius:12px; object-fit:cover; max-height:300px; border:1px solid #e5e7eb; }
+    .modal-card { background:#fff; border-radius:20px; max-width:480px; width:100%; overflow:hidden; }
     .view-creative-btn { font-size:11px; font-weight:600; color:#111; background:#f3f4f6; border:1px solid #e5e7eb; border-radius:999px; padding:3px 10px; cursor:pointer; white-space:nowrap; flex-shrink:0; transition:background .15s; }
     .view-creative-btn:hover { background:#e5e7eb; }
 
@@ -233,20 +232,21 @@
   <p id="welcome-sub" style="font-size:14px;color:#9ca3af;opacity:0;transition:opacity .5s .2s;max-width:280px;text-align:center;line-height:1.5;padding:0 16px;margin-top:6px;"></p>
 </div>
 
-<!-- Creative modal -->
+<!-- Creative modal (video player) -->
 <div id="creative-modal">
-  <div class="modal-card">
-    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;">
+  <div class="modal-card" style="max-width:400px;padding:0;overflow:hidden;">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:16px 16px 10px;">
       <div>
         <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;">Ad Creative</p>
         <p id="modal-ad-name" style="font-size:16px;font-weight:600;color:#111;margin-top:2px;"></p>
       </div>
-      <button onclick="document.getElementById('creative-modal').classList.remove('show')" style="background:none;border:none;cursor:pointer;font-size:20px;color:#ccc;padding:4px 8px;">&#10005;</button>
+      <button id="modal-close-btn" style="background:none;border:none;cursor:pointer;font-size:20px;color:#ccc;padding:4px 8px;">&#10005;</button>
     </div>
-    <img id="modal-img" class="modal-img" src="" alt="Ad Creative"/>
-    <div style="margin-top:12px;padding:10px;background:#f9fafb;border-radius:10px;border:1px solid #e5e7eb;">
-      <p style="font-size:11px;color:#9ca3af;font-weight:500;">Creative not yet linked</p>
-      <p style="font-size:12px;color:#999;margin-top:2px;">Add a Google Drive image URL to populate this creative.</p>
+    <div id="modal-video-wrap" style="width:100%;background:#000;">
+      <video id="modal-video" style="width:100%;display:block;" controls playsinline></video>
+    </div>
+    <div id="modal-no-video" style="padding:20px;text-align:center;display:none;">
+      <p style="font-size:13px;color:#999;">Creative not yet available for this ad.</p>
     </div>
   </div>
 </div>
@@ -460,12 +460,12 @@
     <!-- Campaign Performance — hero metrics -->
     <div class="grid grid-cols-3 gap-3 mb-4 mt-4">
       <div class="card card-hover p-4">
-        <p class="metric-label" id="kpi-leads-label">Fresh Leads</p>
+        <p class="metric-label" id="kpi-leads-label">Leads</p>
         <p class="metric-value-green mt-2" id="kpi-leads">0</p>
         <div id="kpi-leads-sub"><div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div></div>
       </div>
       <div class="card card-hover p-4">
-        <p class="metric-label">Total Spend</p>
+        <p class="metric-label">Spend</p>
         <p class="metric-value mt-2" style="font-size:22px;" id="kpi-spend">$0.00</p>
         <p class="metric-sub">Meta ads</p>
       </div>
@@ -950,14 +950,50 @@ function drawCPLSparkPlaceholder() {
   ctx.fillText('\u{1F353} CPL', lastPtX + 10, lastY);
 }
 
-// ── Creative modal ──────────────────────────────────────────────
-const PLACEHOLDER='https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=480&q=80';
+// ── Creative modal (video player) ───────────────────────────────
+const CREATIVE_MAP = {
+  's1':  '/static/creatives/s1.mov',
+  's2a': '/static/creatives/s2a.mov',
+  's2b': '/static/creatives/s2b.mov',
+};
+function adNameToKey(name) {
+  const n = (name || '').toLowerCase();
+  if (n.includes('one time') || n.includes('s1')) return 's1';
+  if (n.includes('s2b') || (n.includes('never remember') && n.includes('b'))) return 's2b';
+  if (n.includes('s2a') || (n.includes('never remember') && n.includes('a'))) return 's2a';
+  if (n.includes('never remember')) return 's2a';
+  return null;
+}
 function openCreative(adId, adName) {
-  document.getElementById('modal-ad-name').textContent=adName;
-  document.getElementById('modal-img').src=PLACEHOLDER;
+  const video = document.getElementById('modal-video');
+  const noVid = document.getElementById('modal-no-video');
+  const wrap  = document.getElementById('modal-video-wrap');
+  document.getElementById('modal-ad-name').textContent = adName;
+  const key = adNameToKey(adName);
+  const src = key ? CREATIVE_MAP[key] : null;
+  if (src) {
+    video.src = src;
+    video.style.display = 'block';
+    wrap.style.display = 'block';
+    noVid.style.display = 'none';
+    video.play();
+  } else {
+    video.pause();
+    video.src = '';
+    video.style.display = 'none';
+    wrap.style.display = 'none';
+    noVid.style.display = 'block';
+  }
   document.getElementById('creative-modal').classList.add('show');
 }
-document.getElementById('creative-modal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('show');});
+function closeCreative() {
+  const video = document.getElementById('modal-video');
+  video.pause();
+  video.src = '';
+  document.getElementById('creative-modal').classList.remove('show');
+}
+document.getElementById('modal-close-btn').addEventListener('click', closeCreative);
+document.getElementById('creative-modal').addEventListener('click', function(e) { if (e.target === this) closeCreative(); });
 
 // ── Date filter ─────────────────────────────────────────────────
 function toYMD(d){return d.toISOString().slice(0,10);}
@@ -1025,8 +1061,7 @@ function updateKPIs(from,to){
     ? '<div class="thought-bubble"><span class="bubble-dot"></span>warming up...</div>'
     : '<p class="metric-sub">Inbound inquiries</p>';
 
-  // Lead label: "Fresh Leads" for live, "Leads" for past
-  document.getElementById('kpi-leads-label').textContent = VIEW_MODE === 'live' ? 'Fresh Leads' : 'Leads';
+  document.getElementById('kpi-leads-label').textContent = 'Leads';
 
   // Lead value color: green if leads > 0
   const leadsEl = document.getElementById('kpi-leads');

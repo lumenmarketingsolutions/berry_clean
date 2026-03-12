@@ -31,15 +31,41 @@ def init_db():
             name  TEXT NOT NULL
         )
     """)
-    # Seeded accounts — always present
-    for email, name in [("avesta70@gmail.com", "Reza"), ("bre@avalon-laser.com", "Bre")]:
-        con.execute("INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)", (email, name))
-    # Berry Clean client
-    con.execute("INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)", ("berrycleanidaho@gmail.com", "Spencer"))
     con.commit()
     con.close()
 
+def sync_users_from_sheet():
+    """Load all users from the Google Sheet Users tab into SQLite.
+    This ensures users persist across deploys since SQLite is ephemeral."""
+    try:
+        sheet = open_sheet()
+        ws = sheet.worksheet("Users")
+        rows = ws.get_all_values()
+        if len(rows) <= 1:
+            return
+        con = sqlite3.connect(DB_PATH)
+        for row in rows[1:]:
+            email = row[0].strip().lower()
+            name = row[1].strip() if len(row) > 1 else ""
+            if email and name:
+                con.execute("INSERT OR IGNORE INTO users (email, name) VALUES (?, ?)", (email, name))
+        con.commit()
+        con.close()
+    except Exception as e:
+        print(f"[sync_users] Warning: {e}")
+
+def save_user_to_sheet(email, name):
+    """Write a new user to the Google Sheet Users tab for persistence."""
+    try:
+        sheet = open_sheet()
+        ws = sheet.worksheet("Users")
+        from datetime import datetime
+        ws.append_row([email.lower().strip(), name.strip(), datetime.utcnow().isoformat()])
+    except Exception as e:
+        print(f"[save_user] Warning: {e}")
+
 init_db()
+sync_users_from_sheet()
 
 class User(UserMixin):
     def __init__(self, id, email, name):
@@ -61,6 +87,8 @@ def create_user(email, name):
     con = sqlite3.connect(DB_PATH)
     cur = con.execute("INSERT INTO users (email, name) VALUES (?,?)", (email.lower().strip(), name.strip()))
     con.commit(); uid = cur.lastrowid; con.close()
+    # Persist to Google Sheet so it survives redeploys
+    save_user_to_sheet(email, name)
     return get_user_by_id(uid)
 
 @login_manager.user_loader
@@ -97,8 +125,8 @@ def logout():
 # ── Google Sheets ─────────────────────────────────────────────────────────────
 SPREADSHEET_ID = "1mozKN3vJveQHIeK0LVJEhFrH3F8ukWUsX1dJB6qaY64"
 SCOPES = [
-    "https://www.googleapis.com/auth/spreadsheets.readonly",
-    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
 ]
 
 def get_creds():

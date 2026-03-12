@@ -338,11 +338,16 @@ def fetch_conversions():
         utm     = row[utm_idx].strip()      if utm_idx        is not None and utm_idx        < len(row) else ""
         lead_date = parse_date(raw_date[:10])
 
+        is_converted = status.lower() == "converted" and revenue > 0
+        is_opportunity = status.lower() == "invoice sent" and revenue > 0
+
         conv = {
             "name": f"{first} {last}".strip(),
             "lead_status": status,
-            "revenue": revenue,
-            "converted": revenue > 0,
+            "revenue": revenue if is_converted else 0,
+            "opportunity": revenue if is_opportunity else 0,
+            "converted": is_converted,
+            "is_opportunity": is_opportunity,
             "date": lead_date,
             "utm": utm,
         }

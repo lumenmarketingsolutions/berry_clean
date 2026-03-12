@@ -121,6 +121,7 @@
     .conv-item:last-child { border-bottom:none; }
     .conv-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; flex-shrink:0; }
     .conv-avatar-green { background:var(--green-pale); color:var(--green); border:1px solid var(--green-border); }
+    .conv-avatar-amber { background:#fefce8; color:#854d0e; border:1px solid #fde047; }
     .conv-avatar-gray  { background:#f3f4f6; color:#9ca3af; border:1px solid #e5e7eb; }
 
     /* Upload portal — floating icon (mobile-friendly) */
@@ -395,6 +396,7 @@
             <p class="metric-label">Revenue</p>
             <p class="metric-value-green mt-2" id="health-revenue">$0</p>
             <p class="metric-sub" id="health-revenue-sub">From converted leads</p>
+          <p class="metric-sub" id="health-opportunity" style="display:none;margin-top:2px;color:#d97706;font-weight:500;"></p>
           </div>
           <div class="card card-hover p-4" style="display:flex;align-items:center;gap:14px;">
             <div class="roas-ring" id="roas-ring">
@@ -1119,6 +1121,7 @@ function updateLeadHealth(from, to) {
   const converted  = conv.filter(c => c.converted);
   const numConverted = converted.length;
   const totalRevenue = conv.reduce((s, c) => s + c.revenue, 0);
+  const totalOpportunity = conv.reduce((s, c) => s + (c.opportunity || 0), 0);
   const totalSpend   = meta.reduce((s, r) => s + r.spend, 0);
   const roas = totalSpend > 0 ? totalRevenue / totalSpend : 0;
   const convRate = totalLeads > 0 ? (numConverted / totalLeads * 100) : 0;
@@ -1129,6 +1132,15 @@ function updateLeadHealth(from, to) {
   document.getElementById('health-revenue-sub').textContent = numConverted > 0
     ? numConverted + ' converted job' + (numConverted !== 1 ? 's' : '')
     : 'From converted leads';
+
+  // Opportunity cost (invoiced but not closed)
+  const oppEl = document.getElementById('health-opportunity');
+  if (totalOpportunity > 0) {
+    oppEl.style.display = '';
+    oppEl.textContent = '+$' + totalOpportunity.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' invoiced (unclosed)';
+  } else {
+    oppEl.style.display = 'none';
+  }
 
   // ROAS
   const roasVal = document.getElementById('roas-val');
@@ -1208,13 +1220,17 @@ function updateLeadHealth(from, to) {
     listItems.innerHTML = show.map(c => {
       const initials = c.name ? c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
       const isConv = c.converted;
+      const isOpp = c.is_opportunity;
       const avatarContent = isConv ? '&#127827;' : initials;
-      const avatarClass = isConv ? 'conv-avatar-green' : 'conv-avatar-gray';
+      const avatarClass = isConv ? 'conv-avatar-green' : isOpp ? 'conv-avatar-amber' : 'conv-avatar-gray';
       const statusLabel = c.lead_status || (isConv ? 'Converted' : 'In Pipeline');
       const statusBadgeStyle = isConv
         ? 'background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);'
+        : isOpp
+        ? 'background:#fefce8;color:#854d0e;border:1px solid #fde047;'
         : 'background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;';
-      const revenueText = isConv ? '$' + c.revenue.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
+      const revenueText = isConv ? '$' + c.revenue.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2})
+        : isOpp ? '$' + c.opportunity.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
       return `<div class="conv-item">
         <div class="conv-avatar ${avatarClass}">${avatarContent}</div>
         <div style="flex:1;min-width:0;">
@@ -1222,7 +1238,7 @@ function updateLeadHealth(from, to) {
           <p style="font-size:11px;color:#bbb;">${c.date || ''}</p>
         </div>
         <div style="text-align:right;">
-          ${revenueText ? `<p style="font-size:13px;font-weight:700;color:var(--green);">${revenueText}</p>` : ''}
+          ${revenueText ? `<p style="font-size:13px;font-weight:700;color:${isConv ? 'var(--green)' : '#d97706'};">${revenueText}</p>` : ''}
           <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 8px;display:inline-block;${statusBadgeStyle}">${statusLabel}</span>
         </div>
       </div>`;

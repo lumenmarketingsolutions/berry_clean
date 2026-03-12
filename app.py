@@ -3,11 +3,16 @@ import json
 import os
 import base64
 import sqlite3
+import requests
+import time
+import logging
 from collections import defaultdict
 from datetime import timedelta
 from google.oauth2.service_account import Credentials
 from flask import Flask, render_template, jsonify, request, redirect, url_for, session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
+
+logging.basicConfig(level=logging.INFO)
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "berry-clean-secret-2026")
@@ -29,6 +34,13 @@ def init_db():
             id    INTEGER PRIMARY KEY AUTOINCREMENT,
             email TEXT UNIQUE NOT NULL,
             name  TEXT NOT NULL
+        )
+    """)
+    con.execute("""
+        CREATE TABLE IF NOT EXISTS meta_cache (
+            id          INTEGER PRIMARY KEY CHECK (id = 1),
+            data_json   TEXT NOT NULL,
+            updated_at  REAL NOT NULL
         )
     """)
     con.commit()
@@ -169,16 +181,86 @@ def rows_by_header(worksheet):
 
 LAUNCH_DATE = "2026-03-11"   # campaign go-live date
 
+# ── Meta Marketing API ────────────────────────────────────────────────────────
+META_ACCESS_TOKEN  = os.environ.get("META_ACCESS_TOKEN", "")
+META_AD_ACCOUNT    = os.environ.get("META_AD_ACCOUNT", "act_755079127398887")
+META_CACHE_SECONDS = int(os.environ.get("META_CACHE_SECONDS", "3600"))  # 1 hour
+
+
+def fetch_meta_api():
+    """Pull all daily ad-level insights from Meta Marketing API."""
+    if not META_ACCESS_TOKEN:
+        logging.warning("META_ACCESS_TOKEN not set, skipping Meta API pull")
+        return []
+
+    all_rows = []
+    url = f"https://graph.facebook.com/v21.0/{META_AD_ACCOUNT}/insights"
+    params = {
+        "access_token": META_ACCESS_TOKEN,
+        "fields": "ad_id,ad_name,adset_name,campaign_name,spend,impressions,clicks,ctr,cpc,cpm",
+        "level": "ad",
+        "time_increment": 1,
+        "date_preset": "maximum",
+        "limit": 500,
+    }
+
+    while url:
+        resp = requests.get(url, params=params)
+        data = resp.json()
+        if "error" in data:
+            logging.error("Meta API error: %s", data["error"].get("message", data["error"]))
+            break
+        all_rows.extend(data.get("data", []))
+        url = data.get("paging", {}).get("next")
+        params = {}
+
+    logging.info("Meta API returned %d rows", len(all_rows))
+    return all_rows
+
+
+def get_meta_data():
+    """Return cached Meta rows, refreshing from API if cache is stale."""
+    con = sqlite3.connect(DB_PATH)
+    row = con.execute("SELECT data_json, updated_at FROM meta_cache WHERE id = 1").fetchone()
+    now = time.time()
+
+    if row and (now - row[1]) < META_CACHE_SECONDS:
+        con.close()
+        return json.loads(row[0])
+
+    try:
+        fresh = fetch_meta_api()
+        if fresh:
+            con.execute(
+                "INSERT OR REPLACE INTO meta_cache (id, data_json, updated_at) VALUES (1, ?, ?)",
+                (json.dumps(fresh), now),
+            )
+            con.commit()
+            con.close()
+            return fresh
+        if row:
+            con.close()
+            return json.loads(row[0])
+    except Exception as exc:
+        logging.error("Meta API fetch failed: %s", exc)
+        if row:
+            con.close()
+            return json.loads(row[0])
+
+    con.close()
+    return []
+
+
 def is_live_campaign(campaign_name, row_date):
     """A campaign is live if it's 'window washing' type AND on/after launch date."""
     name_lower = str(campaign_name).lower()
-    is_ww = "window" in name_lower or "washing" in name_lower
+    is_ww = "window" in name_lower or "washing" in name_lower or "wc" in name_lower or "retarget" in name_lower
     date_ok = bool(row_date) and row_date >= LAUNCH_DATE
     return is_ww and date_ok
 
+
 def fetch_meta_data():
-    sheet = open_sheet()
-    meta_rows = rows_by_header(sheet.worksheet("Meta_Performance_Log"))
+    meta_api_rows = get_meta_data()
 
     def num(v):
         try: return float(str(v).replace(",","").replace("$","") or 0)
@@ -188,24 +270,23 @@ def fetch_meta_data():
     raw_meta_past = []
     ad_map_live   = {}
     ad_map_past   = {}
-    for r in meta_rows:
+    for r in meta_api_rows:
         ad_id = str(r.get("ad_id","")).strip()
         if not ad_id: continue
-        row_date = parse_date(r.get("Date_SOT","") or r.get("reporting ends",""))
-        campaign_name = r.get("campaign_name","").strip()
-        # If no campaign name set, default to Christmas Lights (all old data)
-        if not campaign_name:
-            campaign_name = "Holiday Lighting"
+        row_date = r.get("date_start", "")[:10]
+        campaign_name = r.get("campaign_name", "").strip()
+
+        spend       = round(num(r.get("spend", 0)), 2)
+        impressions = int(num(r.get("impressions", 0)))
+        clicks      = int(num(r.get("clicks", 0)))
+        ctr         = round(num(r.get("ctr", 0)), 4)
+        cpc         = round(num(r.get("cpc", 0)), 2)
+        cpm         = round(num(r.get("cpm", 0)), 2)
 
         row_data = {
-            "date":        row_date,
-            "spend":       round(num(r.get("spend",0)), 2),
-            "impressions": int(num(r.get("impressions",0))),
-            "clicks":      int(num(r.get("clicks",0))),
-            "ctr":         round(num(r.get("ctr",0)), 4),
-            "cpc":         round(num(r.get("cpc",0)), 2),
-            "cpm":         round(num(r.get("cpm",0)), 2),
-            "campaign":    campaign_name,
+            "date": row_date, "spend": spend, "impressions": impressions,
+            "clicks": clicks, "ctr": ctr, "cpc": cpc, "cpm": cpm,
+            "campaign": campaign_name,
         }
 
         live = is_live_campaign(campaign_name, row_date)
@@ -218,18 +299,18 @@ def fetch_meta_data():
 
         if ad_id not in ad_map:
             ad_map[ad_id] = {
-                "ad_id": ad_id, "ad_name": r.get("ad_name",""),
+                "ad_id": ad_id, "ad_name": r.get("ad_name", ""),
                 "campaign": campaign_name,
-                "impressions":0,"clicks":0,"spend":0.0,
-                "ctr_sum":0.0,"cpc_sum":0.0,"cpm_sum":0.0,"row_count":0
+                "impressions": 0, "clicks": 0, "spend": 0.0,
+                "ctr_sum": 0.0, "cpc_sum": 0.0, "cpm_sum": 0.0, "row_count": 0,
             }
         a = ad_map[ad_id]
-        a["impressions"] += int(num(r.get("impressions",0)))
-        a["clicks"]      += int(num(r.get("clicks",0)))
-        a["spend"]       += num(r.get("spend",0))
-        a["ctr_sum"]     += num(r.get("ctr",0))
-        a["cpc_sum"]     += num(r.get("cpc",0))
-        a["cpm_sum"]     += num(r.get("cpm",0))
+        a["impressions"] += impressions
+        a["clicks"]      += clicks
+        a["spend"]       += spend
+        a["ctr_sum"]     += ctr
+        a["cpc_sum"]     += cpc
+        a["cpm_sum"]     += cpm
         a["row_count"]   += 1
 
     def build_ads(ad_map):

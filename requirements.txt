@@ -3,3 +3,4 @@ flask-login
 gspread
 google-auth
 gunicorn
+requests

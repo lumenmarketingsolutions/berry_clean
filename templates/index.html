@@ -900,7 +900,7 @@ function dateRange(preset){
 }
 function filterRows(rows,from,to){if(!from&&!to)return rows;return rows.filter(r=>r.date&&r.date>=from&&r.date<=to);}
 function fmt(n,d=2){return n.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});}
-function fmtCompact(n){if(n>=1000000)return '$'+(n/1000000).toFixed(1)+'M';if(n>=10000)return '$'+(n/1000).toFixed(1)+'K';if(n>=1000)return '$'+(n/1000).toFixed(2)+'K';return '$'+fmt(n);}
+function fmtCompact(n){if(n>=1000000)return '$'+(n/1000000).toFixed(1)+'M';if(n>=10000)return '$'+(n/1000).toFixed(1)+'K';if(n>=1000){const k=Math.floor(n/10)/100;return '$'+k.toFixed(2)+'K';}return '$'+fmt(n);}
 
 function updateKPIs(from,to){
   const metaSrc  = VIEW_MODE==='live' ? RAW_META_LIVE  : RAW_META_PAST;

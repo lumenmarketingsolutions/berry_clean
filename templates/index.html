@@ -86,7 +86,20 @@
     @media (max-width:640px) {
       .header-action-btn span { display:none; }
       .header-action-btn { padding:5px 10px; font-size:10px; }
+      .header-hide-mobile { display:none !important; }
     }
+
+    /* Upload portal — floating icon (mobile-friendly) */
+    #upload-portal-fab {
+      position:fixed; bottom:24px; left:24px; z-index:400;
+      width:38px; height:38px; border-radius:50%;
+      background:#fff; border:1px solid #eee;
+      display:flex; align-items:center; justify-content:center;
+      cursor:pointer; font-size:16px; color:#bbb;
+      box-shadow:0 2px 12px rgba(0,0,0,.08);
+      transition:all .2s; text-decoration:none;
+    }
+    #upload-portal-fab:hover { border-color:var(--red-border); color:var(--red); box-shadow:0 4px 20px rgba(244,39,31,.12); }
 
     /* Campaign status banner — live (green) */
     #campaign-banner-live {
@@ -215,6 +228,7 @@
   </div>
   <div id="sauce-insights"></div>
 </div>
+<a id="upload-portal-fab" href="https://f.io/zzs40Udc" target="_blank" title="Upload Portal">&#128228;</a>
 <button id="sauce-btn" onclick="toggleSauce()" title="Ask Sauce">?</button>
 
 <!-- Header -->
@@ -231,7 +245,7 @@
       <button id="header-back-btn" onclick="showLive()" class="header-action-btn header-action-btn-active" style="display:none;" title="Back to live view">
         <span style="font-size:11px;">&#8592;</span> Back to Live
       </button>
-      <a href="https://f.io/zzs40Udc" target="_blank" class="header-action-btn" title="Upload videos to Frame.io">
+      <a href="https://f.io/zzs40Udc" target="_blank" class="header-action-btn header-hide-mobile" title="Upload videos to Frame.io">
         <span style="font-size:12px;">&#128228;</span> Upload Portal
       </a>
       <a href="/logout" class="header-action-btn" style="color:#9ca3af;" title="Sign out">Sign out</a>
@@ -277,10 +291,10 @@
   <div id="campaign-banner-progress">
     <div class="flex items-center justify-between" style="position:relative;z-index:1;">
       <div>
-        <p style="font-size:17px;font-weight:700;color:#1a1a1a;letter-spacing:-.01em;"><span class="banner-dot banner-dot-amber"></span>Window Washing</p>
-        <p style="font-size:11px;color:#c4443e;font-weight:500;margin-top:3px;letter-spacing:.02em;">In Progress &middot; Launching soon</p>
+        <p style="font-size:17px;font-weight:700;color:#1a1a1a;letter-spacing:-.01em;white-space:nowrap;"><span class="banner-dot banner-dot-amber"></span>Window Washing</p>
+        <p style="font-size:11px;color:#c4443e;font-weight:500;margin-top:3px;letter-spacing:.02em;white-space:nowrap;">In Progress &middot; Launching soon</p>
       </div>
-      <p style="font-size:11px;color:rgba(0,0,0,.28);max-width:220px;text-align:right;line-height:1.45;font-weight:400;">{{ user_name }}, your data will appear here once this campaign goes live.</p>
+      <p class="hidden sm:block" style="font-size:11px;color:rgba(0,0,0,.28);max-width:220px;text-align:right;line-height:1.45;font-weight:400;">{{ user_name }}, your data will appear here once this campaign goes live.</p>
     </div>
   </div>
 

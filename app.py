@@ -308,7 +308,7 @@ def fetch_conversions():
 
     first_name_idx = col("first_name")
     last_name_idx  = col("last_name")
-    status_idx     = col("job_status")
+    status_idx     = col("lead_status")
     value_idx      = col("converted_lead_value")
     date_idx       = col("date_sot")
     utm_idx        = col("utm_content")
@@ -340,7 +340,7 @@ def fetch_conversions():
 
         conv = {
             "name": f"{first} {last}".strip(),
-            "job_status": status,
+            "lead_status": status,
             "revenue": revenue,
             "converted": revenue > 0,
             "date": lead_date,

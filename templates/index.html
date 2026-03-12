@@ -90,14 +90,15 @@
     }
 
     /* Lead Health section */
-    .health-status { display:inline-flex; align-items:center; gap:6px; font-size:12px; font-weight:600; border-radius:999px; padding:4px 12px; }
-    .health-healthy  { background:var(--green-pale); color:var(--green); border:1px solid var(--green-border); }
-    .health-warming  { background:#fefce8; color:#854d0e; border:1px solid #fde047; }
-    .health-needs    { background:#fff0f0; color:#dc2626; border:1px solid #fca5a5; }
+    .health-status { display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; border-radius:999px; padding:5px 14px; }
+    .health-healthy  { background:linear-gradient(135deg, #f0fdf4, #dcfce7); color:var(--green); border:1px solid var(--green-border); box-shadow:0 2px 8px rgba(22,163,74,.1); }
+    .health-converting { background:linear-gradient(135deg, #f0fdf4, #ecfdf5); color:#15803d; border:1px solid #a7f3d0; }
+    .health-warming  { background:linear-gradient(135deg, #fefce8, #fef9c3); color:#854d0e; border:1px solid #fde047; }
+    .health-cold     { background:#f9fafb; color:#9ca3af; border:1px solid #e5e7eb; }
     .health-dot { width:7px; height:7px; border-radius:50%; animation:pulse 2s infinite; flex-shrink:0; }
-    .health-dot-green  { background:var(--green); }
-    .health-dot-amber  { background:#eab308; }
-    .health-dot-red    { background:#dc2626; }
+    .health-dot-green  { background:var(--green); box-shadow:0 0 6px rgba(22,163,74,.4); }
+    .health-dot-amber  { background:#eab308; box-shadow:0 0 6px rgba(234,179,8,.4); }
+    .health-dot-gray   { background:#9ca3af; }
 
     .funnel-bar { height:8px; border-radius:999px; transition:width .6s ease; }
     .funnel-container { position:relative; height:8px; border-radius:999px; background:#f3f4f6; overflow:hidden; }
@@ -432,15 +433,20 @@
 
   <!-- Lead Health -->
   <section id="lead-health-section" class="card overflow-hidden" style="display:none;">
-    <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
-      <div class="flex items-center gap-3">
-        <p class="section-label" style="margin-bottom:0;">Lead Health</p>
-        <span id="health-badge" class="health-status health-warming">
-          <span class="health-dot health-dot-amber"></span>
-          Warming Up
-        </span>
+    <div id="health-header" class="px-5 py-4" style="border-bottom:1px solid #f3f4f6;">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <p class="section-label" style="margin-bottom:0;">Lead Health</p>
+          <span id="health-badge" class="health-status health-warming">
+            <span class="health-dot health-dot-amber"></span>
+            Warming Up
+          </span>
+        </div>
+        <span id="health-pulse-label" style="font-size:11px;font-weight:600;color:#bbb;letter-spacing:.03em;"></span>
       </div>
-      <span class="text-xs" style="color:#bbb;" id="health-meta">leads → conversions → revenue</span>
+      <div id="health-headline" style="margin-top:8px;display:none;">
+        <p id="health-headline-text" style="font-size:14px;font-weight:500;color:#555;line-height:1.5;"></p>
+      </div>
     </div>
 
     <div class="px-5 py-4">
@@ -467,7 +473,7 @@
         <div class="card card-hover p-4">
           <p class="metric-label">Converted</p>
           <p class="metric-value mt-2" style="font-size:22px;" id="health-converted">0</p>
-          <p class="metric-sub" id="health-conv-sub">Booked / paid jobs</p>
+          <p class="metric-sub" id="health-conv-sub">Closed leads</p>
         </div>
         <div class="card card-hover p-4">
           <p class="metric-label">Conversion Rate</p>
@@ -1026,8 +1032,8 @@ function updateLeadHealth(from, to) {
   document.getElementById('health-converted').textContent = numConverted;
   document.getElementById('health-converted').style.color = numConverted > 0 ? 'var(--green)' : '#111';
   document.getElementById('health-conv-sub').textContent = conv.length > 0
-    ? conv.length + ' total lead' + (conv.length !== 1 ? 's' : '') + ' in pipeline'
-    : 'Booked / paid jobs';
+    ? conv.length + ' total in pipeline'
+    : 'Closed leads';
 
   // Conversion rate
   document.getElementById('health-conv-rate').textContent = convRate > 0 ? convRate.toFixed(1) + '%' : '0%';
@@ -1041,20 +1047,38 @@ function updateLeadHealth(from, to) {
   document.getElementById('funnel-conv').style.width = totalLeads > 0 ? (numConverted / totalLeads * 100) + '%' : '0%';
   document.getElementById('funnel-ratio').textContent = numConverted + ' / ' + totalLeads;
 
-  // Health badge
+  // Health badge + headline
   const badge = document.getElementById('health-badge');
-  if (numConverted > 0 && convRate >= 10) {
+  const headline = document.getElementById('health-headline');
+  const headlineText = document.getElementById('health-headline-text');
+  const pulseLabel = document.getElementById('health-pulse-label');
+
+  if (numConverted > 0 && roas >= 1) {
     badge.className = 'health-status health-healthy';
-    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Healthy';
-  } else if (totalLeads > 0 && numConverted > 0) {
-    badge.className = 'health-status health-warming';
-    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Converting';
+    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Printing';
+    pulseLabel.textContent = roas.toFixed(1) + 'x return';
+    pulseLabel.style.color = 'var(--green)';
+    headline.style.display = '';
+    headlineText.textContent = '$' + totalRevenue.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' back on $' + fmt(totalSpend) + ' spent — the funnel is paying for itself.';
+  } else if (numConverted > 0) {
+    badge.className = 'health-status health-converting';
+    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Converting';
+    pulseLabel.textContent = numConverted + ' closed';
+    pulseLabel.style.color = '#15803d';
+    headline.style.display = '';
+    headlineText.textContent = numConverted + ' lead' + (numConverted !== 1 ? 's' : '') + ' converted so far. Revenue building.';
   } else if (totalLeads > 0) {
     badge.className = 'health-status health-warming';
-    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Leads Coming In';
+    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Pipeline Active';
+    pulseLabel.textContent = totalLeads + ' in funnel';
+    pulseLabel.style.color = '#854d0e';
+    headline.style.display = '';
+    headlineText.textContent = totalLeads + ' lead' + (totalLeads !== 1 ? 's' : '') + ' in the pipeline — waiting on first conversion.';
   } else {
-    badge.className = 'health-status health-warming';
-    badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Warming Up';
+    badge.className = 'health-status health-cold';
+    badge.innerHTML = '<span class="health-dot health-dot-gray"></span>Standby';
+    pulseLabel.textContent = '';
+    headline.style.display = 'none';
   }
 
   // Recent conversions list
@@ -1072,15 +1096,21 @@ function updateLeadHealth(from, to) {
       const initials = c.name ? c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
       const isConv = c.converted;
       const avatarClass = isConv ? 'conv-avatar-green' : 'conv-avatar-gray';
-      const statusText = isConv ? '$' + c.revenue.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : c.job_status || 'Pending';
-      const statusColor = isConv ? 'var(--green)' : '#9ca3af';
+      const statusLabel = c.lead_status || (isConv ? 'Converted' : 'In Pipeline');
+      const statusBadgeStyle = isConv
+        ? 'background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);'
+        : 'background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;';
+      const revenueText = isConv ? '$' + c.revenue.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
       return `<div class="conv-item">
         <div class="conv-avatar ${avatarClass}">${initials}</div>
         <div style="flex:1;min-width:0;">
           <p class="text-sm font-medium truncate" style="color:#111;">${c.name || 'Unknown'}</p>
-          <p style="font-size:11px;color:#bbb;">${c.job_status || 'N/A'}${c.date ? ' · ' + c.date : ''}</p>
+          <p style="font-size:11px;color:#bbb;">${c.date || ''}</p>
         </div>
-        <span style="font-size:13px;font-weight:600;color:${statusColor};white-space:nowrap;">${statusText}</span>
+        <div style="text-align:right;">
+          ${revenueText ? `<p style="font-size:13px;font-weight:700;color:var(--green);">${revenueText}</p>` : ''}
+          <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 8px;display:inline-block;${statusBadgeStyle}">${statusLabel}</span>
+        </div>
       </div>`;
     }).join('');
 

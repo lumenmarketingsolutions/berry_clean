@@ -115,7 +115,7 @@
 
     .roas-ring { width:64px; height:64px; border-radius:50%; position:relative; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
     .roas-ring svg { position:absolute; inset:0; transform:rotate(-90deg); }
-    .roas-ring-val { font-size:13px; font-weight:700; z-index:1; }
+    .roas-ring-val { font-size:18px; font-weight:700; z-index:1; }
 
     .conv-item { display:flex; align-items:center; gap:10px; padding:10px 0; border-bottom:1px solid #f3f4f6; }
     .conv-item:last-child { border-bottom:none; }
@@ -1157,14 +1157,17 @@ function updateLeadHealth(from, to) {
   if (totalRevenue > 0 && totalSpend === 0) {
     roasVal.textContent = '\u221e';
     roasVal.style.color = 'var(--green)';
+    roasVal.style.fontSize = '18px';
     document.getElementById('roas-sub').textContent = 'Revenue before spend data';
   } else if (totalSpend > 0) {
-    roasVal.textContent = roas.toFixed(1) + 'x';
+    roasVal.textContent = roas.toFixed(2) + 'x';
     roasVal.style.color = roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : '#dc2626';
-    document.getElementById('roas-sub').textContent = '$' + fmt(totalRevenue) + ' / $' + fmt(totalSpend);
+    roasVal.style.fontSize = '18px';
+    document.getElementById('roas-sub').innerHTML = '<span style="color:var(--green);font-weight:600;">$' + fmtCompact(totalRevenue).replace('$','') + '</span> <span style="color:#bbb;">on</span> <span style="font-weight:600;">$' + fmtCompact(totalSpend).replace('$','') + '</span>';
   } else {
-    roasVal.textContent = '0.0x';
+    roasVal.textContent = '0.00x';
     roasVal.style.color = '#d1d5db';
+    roasVal.style.fontSize = '18px';
     document.getElementById('roas-sub').textContent = 'Return on ad spend';
   }
 

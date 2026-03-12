@@ -1014,18 +1014,27 @@ function updateLeadHealth(from, to) {
 
   // ROAS
   const roasVal = document.getElementById('roas-val');
-  roasVal.textContent = roas.toFixed(1) + 'x';
-  roasVal.style.color = roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : '#dc2626';
-  document.getElementById('roas-sub').textContent = totalSpend > 0
-    ? '$' + fmt(totalRevenue) + ' / $' + fmt(totalSpend)
-    : 'Return on ad spend';
+  if (totalRevenue > 0 && totalSpend === 0) {
+    roasVal.textContent = '\u221e';
+    roasVal.style.color = 'var(--green)';
+    document.getElementById('roas-sub').textContent = 'Revenue before spend data';
+  } else if (totalSpend > 0) {
+    roasVal.textContent = roas.toFixed(1) + 'x';
+    roasVal.style.color = roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : '#dc2626';
+    document.getElementById('roas-sub').textContent = '$' + fmt(totalRevenue) + ' / $' + fmt(totalSpend);
+  } else {
+    roasVal.textContent = '0.0x';
+    roasVal.style.color = '#d1d5db';
+    document.getElementById('roas-sub').textContent = 'Return on ad spend';
+  }
 
   // ROAS ring animation
   const arc = document.getElementById('roas-arc');
-  const circumference = 175.93; // 2 * PI * 28
-  const roasCapped = Math.min(roas / 5, 1); // 5x = full ring
+  const circumference = 175.93;
+  const roasForRing = (totalRevenue > 0 && totalSpend === 0) ? 5 : roas;
+  const roasCapped = Math.min(roasForRing / 5, 1);
   arc.style.strokeDashoffset = circumference * (1 - roasCapped);
-  arc.style.stroke = roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : roas > 0 ? '#eab308' : '#e5e7eb';
+  arc.style.stroke = (totalRevenue > 0 && totalSpend === 0) ? 'var(--green)' : roas >= 3 ? 'var(--green)' : roas >= 1 ? '#111' : roas > 0 ? '#eab308' : '#e5e7eb';
   arc.style.transition = 'stroke-dashoffset .8s cubic-bezier(.4,0,.2,1), stroke .3s';
 
   // Converted count
@@ -1056,30 +1065,18 @@ function updateLeadHealth(from, to) {
   if (numConverted > 0 && roas >= 1) {
     badge.className = 'health-status health-healthy';
     badge.innerHTML = '<span class="health-dot health-dot-green"></span>Printing';
-    pulseLabel.textContent = roas.toFixed(1) + 'x return';
-    pulseLabel.style.color = 'var(--green)';
-    headline.style.display = '';
-    headlineText.textContent = '$' + totalRevenue.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0}) + ' back on $' + fmt(totalSpend) + ' spent — the funnel is paying for itself.';
   } else if (numConverted > 0) {
     badge.className = 'health-status health-converting';
     badge.innerHTML = '<span class="health-dot health-dot-green"></span>Converting';
-    pulseLabel.textContent = numConverted + ' closed';
-    pulseLabel.style.color = '#15803d';
-    headline.style.display = '';
-    headlineText.textContent = numConverted + ' lead' + (numConverted !== 1 ? 's' : '') + ' converted so far. Revenue building.';
   } else if (totalLeads > 0) {
     badge.className = 'health-status health-warming';
     badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Pipeline Active';
-    pulseLabel.textContent = totalLeads + ' in funnel';
-    pulseLabel.style.color = '#854d0e';
-    headline.style.display = '';
-    headlineText.textContent = totalLeads + ' lead' + (totalLeads !== 1 ? 's' : '') + ' in the pipeline — waiting on first conversion.';
   } else {
     badge.className = 'health-status health-cold';
     badge.innerHTML = '<span class="health-dot health-dot-gray"></span>Standby';
-    pulseLabel.textContent = '';
-    headline.style.display = 'none';
   }
+  pulseLabel.textContent = '';
+  headline.style.display = 'none';
 
   // Recent conversions list
   const listWrap = document.getElementById('health-conv-list');

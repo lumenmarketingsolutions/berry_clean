@@ -255,14 +255,27 @@ def is_retargeting(campaign_name):
     return "retarget" in str(campaign_name).lower()
 
 
-def is_live_campaign(campaign_name, row_date):
-    """A campaign is live if it's window-washing type AND on/after launch date (not retargeting)."""
+# Explicit campaign classification — prevents unknown campaigns from leaking into metrics
+HOLIDAY_KEYWORDS = ["christmas", "holiday", "xmas", "lights"]
+LIVE_KEYWORDS    = ["window", "washing", "wc"]
+
+def classify_campaign(campaign_name, row_date):
+    """Classify a campaign as 'live', 'past', 'retarget', or 'unknown'.
+    Unknown campaigns are excluded from all metrics."""
     name_lower = str(campaign_name).lower()
     if "retarget" in name_lower:
-        return False  # retargeting tracked separately
-    is_ww = "window" in name_lower or "washing" in name_lower or "wc" in name_lower
-    date_ok = bool(row_date) and row_date >= LAUNCH_DATE
-    return is_ww and date_ok
+        return "retarget"
+    if any(kw in name_lower for kw in LIVE_KEYWORDS):
+        date_ok = bool(row_date) and row_date >= LAUNCH_DATE
+        return "live" if date_ok else "unknown"
+    if any(kw in name_lower for kw in HOLIDAY_KEYWORDS):
+        return "past"
+    # Unknown campaign — do not include in any bucket
+    return "unknown"
+
+
+def is_live_campaign(campaign_name, row_date):
+    return classify_campaign(campaign_name, row_date) == "live"
 
 
 def fetch_meta_data():
@@ -297,15 +310,18 @@ def fetch_meta_data():
             "campaign": campaign_name,
         }
 
-        if is_retargeting(campaign_name):
+        bucket = classify_campaign(campaign_name, row_date)
+        if bucket == "retarget":
             raw_meta_retarget.append(row_data)
             ad_map = ad_map_retarget
-        elif is_live_campaign(campaign_name, row_date):
+        elif bucket == "live":
             raw_meta_live.append(row_data)
             ad_map = ad_map_live
-        else:
+        elif bucket == "past":
             raw_meta_past.append(row_data)
             ad_map = ad_map_past
+        else:
+            continue  # unknown campaign — exclude from all metrics
 
         if ad_id not in ad_map:
             ad_map[ad_id] = {

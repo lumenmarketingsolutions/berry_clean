@@ -380,7 +380,7 @@
     <section id="lead-health-section" class="card overflow-hidden" style="display:none;">
       <div id="health-header" class="px-5 py-4" style="border-bottom:1px solid #f3f4f6;">
         <div class="flex items-center gap-3">
-          <p class="section-label" style="margin-bottom:0;">Lead Health</p>
+          <p class="section-label" style="margin-bottom:0;">&#127827; Lead Health</p>
           <span id="health-badge" class="health-status health-warming">
             <span class="health-dot health-dot-amber"></span>
             Warming Up
@@ -450,7 +450,7 @@
 
         <!-- Empty state -->
         <div id="health-empty" style="text-align:center;padding:8px 0;">
-          <p style="font-size:13px;color:#bbb;">No conversions yet</p>
+          <p style="font-size:13px;color:#bbb;">&#127827; No conversions yet</p>
           <p style="font-size:11px;color:#d1d5db;margin-top:4px;">Revenue and conversion data will appear as leads convert to jobs</p>
         </div>
       </div>
@@ -486,7 +486,7 @@
     <!-- Ad Efficiency — visual cards -->
     <div class="card card-hover mb-3" style="padding:16px 20px;">
       <div class="flex items-center justify-between mb-3">
-        <p class="section-label" style="margin-bottom:0;">Ad Efficiency</p>
+        <p class="section-label" style="margin-bottom:0;">&#127827; Ad Efficiency</p>
       </div>
       <div class="grid grid-cols-3 gap-4">
         <!-- CTR gauge -->
@@ -519,12 +519,12 @@
       </div>
     </div>
 
-    <!-- CPL Sparkline (full width, hidden until data) -->
+    <!-- CPL Sparkline (full width) -->
     <div class="card card-hover mb-3" id="kpi-cpl-spark-card" style="display:none;padding:16px 20px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
           <p class="metric-label">CPL Trend</p>
-          <p class="metric-sub" style="margin-top:4px;">Cost per lead over time</p>
+          <p class="metric-sub" style="margin-top:4px;" id="cpl-spark-sub">Cost per lead over time</p>
         </div>
         <canvas id="cpl-spark" width="180" height="44" style="opacity:.8;"></canvas>
       </div>
@@ -538,7 +538,7 @@
   <!-- Ad Rankings -->
   <section class="card overflow-hidden" id="ad-rankings-section">
     <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
-      <p class="section-label" style="margin-bottom:0;">Ad Rankings</p>
+      <p class="section-label" style="margin-bottom:0;">&#127827; Ad Rankings</p>
       <span class="text-xs" style="color:#bbb;" id="ad-rankings-meta">leads first, then CTR</span>
     </div>
 
@@ -553,7 +553,7 @@
 </main>
 
 <footer style="border-top:1px solid #e5e7eb;background:#fff;" class="px-5 py-4 mt-8 text-center">
-  <p class="text-xs" style="color:#ddd;">Berry Clean &copy; 2026 &middot; Powered by Lumen</p>
+  <p class="text-xs" style="color:#ddd;">&#127827; Berry Clean &copy; 2026 &middot; Powered by Lumen</p>
 </footer>
 
 <script>
@@ -780,6 +780,66 @@ function drawCPLSpark(data, isLive, endLabel) {
   }
 }
 
+function drawCPLSparkPlaceholder() {
+  const canvas = document.getElementById('cpl-spark');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const pad = 6;
+  ctx.clearRect(0,0,W,H);
+
+  // Simulated downward trend line (what CPL will look like)
+  const points = [38, 35, 33, 30, 26, 24, 21, 18, 16, 14];
+  const maxV = 40, minV = 10;
+  const range = maxV - minV;
+  const stepX = (W - pad*2 - 30) / (points.length - 1);
+
+  // Dashed line
+  ctx.setLineDash([4, 3]);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  points.forEach((v, i) => {
+    const x = pad + i * stepX;
+    const y = pad + (1 - (v - minV) / range) * (H - pad*2);
+    i === 0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  // Gradient fill
+  const lastPtX = pad + (points.length-1)*stepX;
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, 'rgba(209,213,219,.08)');
+  grad.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.lineTo(lastPtX, H);
+  ctx.lineTo(pad, H);
+  ctx.closePath();
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // End dot (hollow)
+  const lastY = pad + (1 - (points[points.length-1] - minV) / range) * (H - pad*2);
+  ctx.beginPath();
+  ctx.arc(lastPtX, lastY, 4, 0, Math.PI*2);
+  ctx.strokeStyle = '#d1d5db';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(lastPtX, lastY, 2, 0, Math.PI*2);
+  ctx.fillStyle = '#d1d5db';
+  ctx.fill();
+
+  // Label
+  ctx.font = '500 10px Inter, sans-serif';
+  ctx.fillStyle = '#bbb';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('\u{1F353} CPL', lastPtX + 10, lastY);
+}
+
 // ── Creative modal ──────────────────────────────────────────────
 const PLACEHOLDER='https://images.unsplash.com/photo-1527515637462-cff94eecc1ac?w=480&q=80';
 function openCreative(adId, adName) {
@@ -887,6 +947,7 @@ function updateKPIs(from,to){
     if (VIEW_MODE === 'past') {
       // Past: always show a downward trending CPL line
       cplSparkCard.style.display = '';
+      document.getElementById('cpl-spark-sub').textContent = 'Cost per lead over time';
       trendBadge.textContent = '\u2193';
       trendBadge.style.background = 'var(--green-pale)';
       trendBadge.style.color = 'var(--green)';
@@ -916,8 +977,9 @@ function updateKPIs(from,to){
     cplEl.style.color = '#d1d5db';
     trendBadge.textContent = '';
     sub.textContent = 'Awaiting leads';
-    cplSparkCard.style.display = 'none';
-    drawCPLSpark([], true);
+    cplSparkCard.style.display = '';
+    document.getElementById('cpl-spark-sub').textContent = 'Tracking starts when leads come in';
+    drawCPLSparkPlaceholder();
   } else {
     cplCard.style.display = 'none';
     cplSparkCard.style.display = 'none';
@@ -1105,12 +1167,15 @@ function updateLeadHealth(from, to) {
   // Health badge
   const badge = document.getElementById('health-badge');
 
-  if (numConverted > 0 && roas >= 1) {
+  if (VIEW_MODE === 'past') {
+    badge.className = 'health-status health-cold';
+    badge.innerHTML = '&#127827; Campaign Complete';
+  } else if (numConverted > 0 && roas >= 1) {
     badge.className = 'health-status health-healthy';
-    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Printing';
+    badge.innerHTML = '&#127827; Printing';
   } else if (numConverted > 0) {
     badge.className = 'health-status health-converting';
-    badge.innerHTML = '<span class="health-dot health-dot-green"></span>Converting';
+    badge.innerHTML = '&#127827; Converting';
   } else if (totalLeads > 0) {
     badge.className = 'health-status health-warming';
     badge.innerHTML = '<span class="health-dot health-dot-amber"></span>Pipeline Active';
@@ -1133,6 +1198,7 @@ function updateLeadHealth(from, to) {
     listItems.innerHTML = show.map(c => {
       const initials = c.name ? c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
       const isConv = c.converted;
+      const avatarContent = isConv ? '&#127827;' : initials;
       const avatarClass = isConv ? 'conv-avatar-green' : 'conv-avatar-gray';
       const statusLabel = c.lead_status || (isConv ? 'Converted' : 'In Pipeline');
       const statusBadgeStyle = isConv
@@ -1140,7 +1206,7 @@ function updateLeadHealth(from, to) {
         : 'background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;';
       const revenueText = isConv ? '$' + c.revenue.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
       return `<div class="conv-item">
-        <div class="conv-avatar ${avatarClass}">${initials}</div>
+        <div class="conv-avatar ${avatarClass}">${avatarContent}</div>
         <div style="flex:1;min-width:0;">
           <p class="text-sm font-medium truncate" style="color:#111;">${c.name || 'Unknown'}</p>
           <p style="font-size:11px;color:#bbb;">${c.date || ''}</p>

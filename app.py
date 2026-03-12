@@ -439,6 +439,36 @@ def fetch_conversions():
 
     return live_conv, past_conv
 
+# ── Diagnostic endpoint ───────────────────────────────────────────────────────
+@app.route("/debug-meta")
+@login_required
+def debug_meta():
+    token_set = bool(META_ACCESS_TOKEN)
+    token_preview = META_ACCESS_TOKEN[:12] + "..." if META_ACCESS_TOKEN else "(empty)"
+    cache_row = None
+    try:
+        con = sqlite3.connect(DB_PATH)
+        row = con.execute("SELECT updated_at FROM meta_cache WHERE id = 1").fetchone()
+        con.close()
+        if row:
+            import datetime
+            cache_row = datetime.datetime.fromtimestamp(row[0]).isoformat()
+    except:
+        pass
+    meta_rows = get_meta_data()
+    live_count = sum(1 for r in meta_rows if is_live_campaign(r.get("campaign_name", ""), r.get("date_start", "")[:10]))
+    return jsonify({
+        "token_set": token_set,
+        "token_preview": token_preview,
+        "ad_account": META_AD_ACCOUNT,
+        "cache_last_updated": cache_row,
+        "total_meta_rows": len(meta_rows),
+        "live_rows": live_count,
+        "past_rows": len(meta_rows) - live_count,
+        "sample": meta_rows[0] if meta_rows else None,
+    })
+
+
 # ── Routes ────────────────────────────────────────────────────────────────────
 @app.route("/")
 @login_required

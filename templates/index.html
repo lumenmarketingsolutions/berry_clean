@@ -478,6 +478,12 @@
       </div>
     </div>
 
+    <!-- Recent Leads list -->
+    <div class="card card-hover mb-4" id="recent-leads-card" style="display:none;padding:16px 20px;">
+      <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;">Recent Leads</p>
+      <div id="recent-leads-items"></div>
+    </div>
+
     <!-- CPL — full width between hero cards and ad efficiency -->
     <div class="card card-hover mb-4" id="kpi-cpl-card" style="display:none;padding:16px 20px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -1071,6 +1077,35 @@ function updateKPIs(from,to){
   // Lead value color: green if leads > 0
   const leadsEl = document.getElementById('kpi-leads');
   leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
+
+  // Recent Leads list
+  const recentLeadsCard = document.getElementById('recent-leads-card');
+  const recentLeadsItems = document.getElementById('recent-leads-items');
+  if (leads.length > 0) {
+    recentLeadsCard.style.display = '';
+    const sortedLeads = [...leads].sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const showLeads = sortedLeads.slice(0, 5);
+    recentLeadsItems.innerHTML = showLeads.map(l => {
+      const isTest = l.is_test || false;
+      const initials = l.name ? l.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
+      const avatarClass = isTest ? 'conv-avatar-gray' : 'conv-avatar-green';
+      return `<div class="conv-item">
+        <div class="conv-avatar ${avatarClass}">${isTest ? '🔧' : initials}</div>
+        <div style="flex:1;min-width:0;">
+          <p class="text-sm font-medium truncate" style="color:${isTest ? '#9ca3af' : '#111'};">${l.name || 'Unknown'}${isTest ? ' <span style="font-size:10px;color:#bbb;">(test)</span>' : ''}</p>
+          <p style="font-size:11px;color:#bbb;">${l.date || ''}</p>
+        </div>
+        <div style="text-align:right;">
+          <span style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 8px;display:inline-block;${isTest ? 'background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;' : 'background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);'}">${isTest ? 'Test' : 'Lead'}</span>
+        </div>
+      </div>`;
+    }).join('');
+    if (sortedLeads.length > 5) {
+      recentLeadsItems.innerHTML += `<p style="text-align:center;font-size:11px;color:#bbb;padding:8px 0;">+${sortedLeads.length - 5} more</p>`;
+    }
+  } else {
+    recentLeadsCard.style.display = 'none';
+  }
 
   // Cost per lead card + sparkline
   const cplCard = document.getElementById('kpi-cpl-card');

@@ -375,6 +375,8 @@ def fetch_leads():
     date_idx = col("date_sot")
     utm_idx  = col("utm_content")
     created_idx = col("created_at")
+    name_idx = col("name")
+    person_idx = col("person")
 
     seen = set()
     live_leads, past_leads = [], []
@@ -386,8 +388,15 @@ def fetch_leads():
         raw_date = row[date_idx].strip() if date_idx is not None and date_idx < len(row) else ""
         created  = row[created_idx].strip() if created_idx is not None and created_idx < len(row) else ""
         utm      = row[utm_idx].strip()  if utm_idx  is not None and utm_idx  < len(row) else ""
+        name     = row[name_idx].strip()  if name_idx  is not None and name_idx  < len(row) else ""
+        if not name:
+            name = row[person_idx].strip() if person_idx is not None and person_idx < len(row) else ""
         lead_date = parse_date(raw_date[:10]) or parse_date(created[:10])
-        lead = {"id": contact, "date": lead_date, "utm": utm}
+
+        # Flag test leads
+        is_test = "kendall" in name.lower() or "test" in name.lower()
+
+        lead = {"id": contact, "date": lead_date, "utm": utm, "name": name, "is_test": is_test}
         if lead_date and lead_date >= LAUNCH_DATE:
             live_leads.append(lead)
         else:

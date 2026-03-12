@@ -376,7 +376,88 @@
       </div>
     </section>
 
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+    <!-- Lead Health (top section — the money) -->
+    <section id="lead-health-section" class="card overflow-hidden" style="display:none;">
+      <div id="health-header" class="px-5 py-4" style="border-bottom:1px solid #f3f4f6;">
+        <div class="flex items-center gap-3">
+          <p class="section-label" style="margin-bottom:0;">Lead Health</p>
+          <span id="health-badge" class="health-status health-warming">
+            <span class="health-dot health-dot-amber"></span>
+            Warming Up
+          </span>
+        </div>
+      </div>
+
+      <div class="px-5 py-4">
+        <!-- Revenue + ROAS hero row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+          <div class="card card-hover p-4 revenue-glow" style="position:relative;z-index:1;">
+            <p class="metric-label">Revenue</p>
+            <p class="metric-value-green mt-2" id="health-revenue">$0</p>
+            <p class="metric-sub" id="health-revenue-sub">From converted leads</p>
+          </div>
+          <div class="card card-hover p-4" style="display:flex;align-items:center;gap:14px;">
+            <div class="roas-ring" id="roas-ring">
+              <svg viewBox="0 0 64 64">
+                <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+                <circle id="roas-arc" cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" stroke-width="5" stroke-dasharray="175.93" stroke-dashoffset="175.93" stroke-linecap="round"/>
+              </svg>
+              <span class="roas-ring-val" id="roas-val">0.0x</span>
+            </div>
+            <div>
+              <p class="metric-label">ROAS</p>
+              <p class="metric-sub" style="margin-top:2px;" id="roas-sub">Return on ad spend</p>
+            </div>
+          </div>
+          <div class="card card-hover p-4">
+            <p class="metric-label">Converted</p>
+            <p class="metric-value mt-2" style="font-size:22px;" id="health-converted">0</p>
+            <p class="metric-sub" id="health-conv-sub">Closed leads</p>
+          </div>
+          <div class="card card-hover p-4">
+            <p class="metric-label">Conversion Rate</p>
+            <p class="metric-value mt-2" style="font-size:22px;" id="health-conv-rate">0%</p>
+            <p class="metric-sub" id="health-rate-sub">Leads that converted</p>
+          </div>
+        </div>
+
+        <!-- Funnel visualization -->
+        <div class="mb-4" id="health-funnel-wrap">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1">
+                <span style="width:10px;height:10px;border-radius:2px;background:#9ca3af;display:inline-block;"></span>
+                <span style="font-size:11px;color:#9ca3af;font-weight:500;">Leads</span>
+              </div>
+              <div class="flex items-center gap-1">
+                <span style="width:10px;height:10px;border-radius:2px;background:var(--green);display:inline-block;"></span>
+                <span style="font-size:11px;color:#9ca3af;font-weight:500;">Converted</span>
+              </div>
+            </div>
+            <span style="font-size:11px;color:#bbb;font-weight:500;" id="funnel-ratio">0 / 0</span>
+          </div>
+          <div class="funnel-container">
+            <div class="funnel-fill funnel-fill-leads" id="funnel-leads" style="width:0%;"></div>
+            <div class="funnel-fill funnel-fill-conv" id="funnel-conv" style="width:0%;"></div>
+          </div>
+        </div>
+
+        <!-- Recent conversions list -->
+        <div id="health-conv-list" style="display:none;">
+          <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;">Recent Conversions</p>
+          <div id="conv-list-items"></div>
+        </div>
+
+        <!-- Empty state -->
+        <div id="health-empty" style="text-align:center;padding:8px 0;">
+          <p style="font-size:13px;color:#bbb;">No conversions yet</p>
+          <p style="font-size:11px;color:#d1d5db;margin-top:4px;">Revenue and conversion data will appear as leads convert to jobs</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Campaign Performance — hero metrics -->
+    <div class="grid grid-cols-3 gap-3 mb-3">
       <div class="card card-hover p-4">
         <p class="metric-label" id="kpi-leads-label">Fresh Leads</p>
         <p class="metric-value-green mt-2" id="kpi-leads">0</p>
@@ -387,135 +468,73 @@
         <p class="metric-value mt-2" style="font-size:22px;" id="kpi-spend">$0.00</p>
         <p class="metric-sub">Meta ads</p>
       </div>
-      <div class="card card-hover p-4">
-        <p class="metric-label">Impressions</p>
-        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-impressions">0</p>
-        <p class="metric-sub">Total views</p>
-      </div>
-      <div class="card card-hover p-4">
-        <p class="metric-label">Clicks</p>
-        <p class="metric-value mt-2" style="font-size:22px;" id="kpi-clicks">0</p>
-        <p class="metric-sub">Link clicks</p>
+      <div class="card card-hover p-4" id="kpi-cpl-card" style="display:none;">
+        <p class="metric-label">Cost Per Lead</p>
+        <div style="display:flex;align-items:baseline;gap:6px;margin-top:6px;">
+          <p style="font-size:22px;font-weight:700;color:#111;" id="kpi-cpl">$0.00</p>
+          <span id="cpl-trend-badge" style="font-size:10px;font-weight:600;border-radius:999px;padding:2px 6px;"></span>
+        </div>
+        <p class="metric-sub" id="cpl-sub">Spend / leads</p>
       </div>
     </div>
-    <div id="kpi-row-2" class="grid grid-cols-3 gap-3">
-      <div class="card card-hover p-4">
-        <p class="metric-label">Avg CTR</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-ctr">0.00%</p>
-        <p class="metric-sub">Click-through rate</p>
+
+    <!-- Ad Efficiency — visual cards -->
+    <div class="card card-hover mb-3" style="padding:16px 20px;">
+      <div class="flex items-center justify-between mb-3">
+        <p class="section-label" style="margin-bottom:0;">Ad Efficiency</p>
       </div>
-      <div class="card card-hover p-4">
-        <p class="metric-label">Avg CPC</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpc">$0.00</p>
-        <p class="metric-sub">Cost per click</p>
-      </div>
-      <div class="card card-hover p-4">
-        <p class="metric-label">Avg CPM</p>
-        <p class="metric-value mt-2" style="font-size:20px;" id="kpi-cpm">$0.00</p>
-        <p class="metric-sub">Per 1k impressions</p>
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+        <!-- CTR gauge -->
+        <div style="text-align:center;">
+          <div style="position:relative;width:56px;height:56px;margin:0 auto 6px;">
+            <svg viewBox="0 0 56 56" style="transform:rotate(-90deg);">
+              <circle cx="28" cy="28" r="22" fill="none" stroke="#f3f4f6" stroke-width="4"/>
+              <circle id="ctr-gauge-arc" cx="28" cy="28" r="22" fill="none" stroke="#e5e7eb" stroke-width="4" stroke-dasharray="138.23" stroke-dashoffset="138.23" stroke-linecap="round" style="transition:stroke-dashoffset .8s ease,stroke .3s;"/>
+            </svg>
+            <span id="ctr-gauge-val" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111;">0%</span>
+          </div>
+          <p class="metric-label">CTR</p>
+        </div>
+        <!-- CPC bar -->
+        <div style="text-align:center;">
+          <p style="font-size:20px;font-weight:700;color:#111;" id="kpi-cpc">$0.00</p>
+          <div style="height:4px;border-radius:999px;background:#f3f4f6;margin:8px auto;width:80%;overflow:hidden;">
+            <div id="cpc-bar" style="height:100%;border-radius:999px;background:#9ca3af;width:0%;transition:width .8s ease;"></div>
+          </div>
+          <p class="metric-label">CPC</p>
+        </div>
+        <!-- CPM bar -->
+        <div style="text-align:center;">
+          <p style="font-size:20px;font-weight:700;color:#111;" id="kpi-cpm">$0.00</p>
+          <div style="height:4px;border-radius:999px;background:#f3f4f6;margin:8px auto;width:80%;overflow:hidden;">
+            <div id="cpm-bar" style="height:100%;border-radius:999px;background:#9ca3af;width:0%;transition:width .8s ease;"></div>
+          </div>
+          <p class="metric-label">CPM</p>
+        </div>
+        <!-- Reach: impressions + clicks -->
+        <div style="text-align:center;">
+          <p style="font-size:20px;font-weight:700;color:#111;" id="kpi-impressions">0</p>
+          <p style="font-size:12px;color:var(--green);font-weight:600;margin-top:2px;" id="kpi-clicks-inline">0 clicks</p>
+          <p class="metric-label" style="margin-top:4px;">Reach</p>
+        </div>
       </div>
     </div>
-    <!-- Cost Per Lead — full width card with trend -->
-    <div class="card card-hover mt-3" id="kpi-cpl-card" style="display:none;padding:16px 20px;">
+
+    <!-- CPL Sparkline (full width, hidden until data) -->
+    <div class="card card-hover mb-3" id="kpi-cpl-spark-card" style="display:none;padding:16px 20px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <div>
-          <p class="metric-label">Cost Per Lead</p>
-          <div style="display:flex;align-items:baseline;gap:10px;margin-top:6px;">
-            <p style="font-size:24px;font-weight:700;color:#111;" id="kpi-cpl">$0.00</p>
-            <span id="cpl-trend-badge" style="font-size:11px;font-weight:600;border-radius:999px;padding:2px 8px;"></span>
-          </div>
-          <p class="metric-sub" style="margin-top:4px;" id="cpl-sub">Total spend / leads</p>
+          <p class="metric-label">CPL Trend</p>
+          <p class="metric-sub" style="margin-top:4px;">Cost per lead over time</p>
         </div>
-        <canvas id="cpl-spark" width="120" height="40" style="opacity:.7;"></canvas>
+        <canvas id="cpl-spark" width="180" height="44" style="opacity:.8;"></canvas>
       </div>
     </div>
+
+    <!-- Hidden elements for JS compatibility -->
+    <span id="kpi-ctr" style="display:none;">0.00%</span>
+    <span id="kpi-clicks" style="display:none;">0</span>
   </div>
-
-  <!-- Lead Health -->
-  <section id="lead-health-section" class="card overflow-hidden" style="display:none;">
-    <div id="health-header" class="px-5 py-4" style="border-bottom:1px solid #f3f4f6;">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <p class="section-label" style="margin-bottom:0;">Lead Health</p>
-          <span id="health-badge" class="health-status health-warming">
-            <span class="health-dot health-dot-amber"></span>
-            Warming Up
-          </span>
-        </div>
-        <span id="health-pulse-label" style="font-size:11px;font-weight:600;color:#bbb;letter-spacing:.03em;"></span>
-      </div>
-      <div id="health-headline" style="margin-top:8px;display:none;">
-        <p id="health-headline-text" style="font-size:14px;font-weight:500;color:#555;line-height:1.5;"></p>
-      </div>
-    </div>
-
-    <div class="px-5 py-4">
-      <!-- Revenue + ROAS hero row -->
-      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-        <div class="card card-hover p-4 revenue-glow" style="position:relative;z-index:1;">
-          <p class="metric-label">Revenue</p>
-          <p class="metric-value-green mt-2" id="health-revenue">$0</p>
-          <p class="metric-sub" id="health-revenue-sub">From converted leads</p>
-        </div>
-        <div class="card card-hover p-4" style="display:flex;align-items:center;gap:14px;">
-          <div class="roas-ring" id="roas-ring">
-            <svg viewBox="0 0 64 64">
-              <circle cx="32" cy="32" r="28" fill="none" stroke="#f3f4f6" stroke-width="5"/>
-              <circle id="roas-arc" cx="32" cy="32" r="28" fill="none" stroke="#e5e7eb" stroke-width="5" stroke-dasharray="175.93" stroke-dashoffset="175.93" stroke-linecap="round"/>
-            </svg>
-            <span class="roas-ring-val" id="roas-val">0.0x</span>
-          </div>
-          <div>
-            <p class="metric-label">ROAS</p>
-            <p class="metric-sub" style="margin-top:2px;" id="roas-sub">Return on ad spend</p>
-          </div>
-        </div>
-        <div class="card card-hover p-4">
-          <p class="metric-label">Converted</p>
-          <p class="metric-value mt-2" style="font-size:22px;" id="health-converted">0</p>
-          <p class="metric-sub" id="health-conv-sub">Closed leads</p>
-        </div>
-        <div class="card card-hover p-4">
-          <p class="metric-label">Conversion Rate</p>
-          <p class="metric-value mt-2" style="font-size:22px;" id="health-conv-rate">0%</p>
-          <p class="metric-sub" id="health-rate-sub">Leads that converted</p>
-        </div>
-      </div>
-
-      <!-- Funnel visualization -->
-      <div class="mb-4" id="health-funnel-wrap">
-        <div class="flex items-center justify-between mb-2">
-          <div class="flex items-center gap-3">
-            <div class="flex items-center gap-1">
-              <span style="width:10px;height:10px;border-radius:2px;background:#9ca3af;display:inline-block;"></span>
-              <span style="font-size:11px;color:#9ca3af;font-weight:500;">Leads</span>
-            </div>
-            <div class="flex items-center gap-1">
-              <span style="width:10px;height:10px;border-radius:2px;background:var(--green);display:inline-block;"></span>
-              <span style="font-size:11px;color:#9ca3af;font-weight:500;">Converted</span>
-            </div>
-          </div>
-          <span style="font-size:11px;color:#bbb;font-weight:500;" id="funnel-ratio">0 / 0</span>
-        </div>
-        <div class="funnel-container">
-          <div class="funnel-fill funnel-fill-leads" id="funnel-leads" style="width:0%;"></div>
-          <div class="funnel-fill funnel-fill-conv" id="funnel-conv" style="width:0%;"></div>
-        </div>
-      </div>
-
-      <!-- Recent conversions list -->
-      <div id="health-conv-list" style="display:none;">
-        <p style="font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:#9ca3af;margin-bottom:8px;">Recent Conversions</p>
-        <div id="conv-list-items"></div>
-      </div>
-
-      <!-- Empty state -->
-      <div id="health-empty" style="text-align:center;padding:8px 0;">
-        <p style="font-size:13px;color:#bbb;">No conversions yet</p>
-        <p style="font-size:11px;color:#d1d5db;margin-top:4px;">Revenue and conversion data will appear as leads convert to jobs</p>
-      </div>
-    </div>
-  </section>
 
   <!-- Ad Rankings -->
   <section class="card overflow-hidden" id="ad-rankings-section">
@@ -792,6 +811,35 @@ function updateKPIs(from,to){
   document.getElementById('kpi-ctr').textContent = fmt(avgCtr)+'%';
   document.getElementById('kpi-cpc').textContent = '$'+fmt(avgCpc);
   document.getElementById('kpi-cpm').textContent = '$'+fmt(avgCpm);
+  document.getElementById('kpi-clicks-inline').textContent = meta.reduce((s,r)=>s+r.clicks,0).toLocaleString() + ' clicks';
+
+  // CTR gauge
+  const ctrGaugeArc = document.getElementById('ctr-gauge-arc');
+  const ctrGaugeVal = document.getElementById('ctr-gauge-val');
+  if (ctrGaugeArc) {
+    const ctrCircum = 138.23;
+    const ctrCapped = Math.min(avgCtr / 8, 1); // 8% = full ring
+    ctrGaugeArc.style.strokeDashoffset = ctrCircum * (1 - ctrCapped);
+    ctrGaugeArc.style.stroke = avgCtr >= 3 ? 'var(--green)' : avgCtr >= 1.5 ? '#111' : avgCtr > 0 ? '#eab308' : '#e5e7eb';
+    ctrGaugeVal.textContent = fmt(avgCtr) + '%';
+    ctrGaugeVal.style.color = avgCtr >= 3 ? 'var(--green)' : '#111';
+  }
+
+  // CPC bar (scale: $5 = full bar)
+  const cpcBar = document.getElementById('cpc-bar');
+  if (cpcBar) {
+    const cpcPct = Math.min(avgCpc / 5, 1) * 100;
+    cpcBar.style.width = cpcPct + '%';
+    cpcBar.style.background = avgCpc <= 1 ? 'var(--green)' : avgCpc <= 3 ? '#111' : '#dc2626';
+  }
+
+  // CPM bar (scale: $50 = full bar)
+  const cpmBar = document.getElementById('cpm-bar');
+  if (cpmBar) {
+    const cpmPct = Math.min(avgCpm / 50, 1) * 100;
+    cpmBar.style.width = cpmPct + '%';
+    cpmBar.style.background = avgCpm <= 15 ? 'var(--green)' : avgCpm <= 30 ? '#111' : '#dc2626';
+  }
 
   // Leads sub-text
   document.getElementById('kpi-leads-sub').innerHTML = leads.length===0
@@ -805,76 +853,50 @@ function updateKPIs(from,to){
   const leadsEl = document.getElementById('kpi-leads');
   leadsEl.className = leads.length > 0 ? 'metric-value-green mt-2' : 'metric-value mt-2';
 
-  // Cost per lead card — different treatment for live vs past
+  // Cost per lead card + sparkline
   const cplCard = document.getElementById('kpi-cpl-card');
-  const badge = document.getElementById('cpl-trend-badge');
+  const cplSparkCard = document.getElementById('kpi-cpl-spark-card');
+  const trendBadge = document.getElementById('cpl-trend-badge');
   const sub = document.getElementById('cpl-sub');
   const cplEl = document.getElementById('kpi-cpl');
+  const totalSpendCPL = meta.reduce((s,r)=>s+r.spend,0);
 
-  if (VIEW_MODE === 'live') {
-    // Live: always show card — placeholder if no data, real trending when data flows
+  if (leads.length > 0) {
     cplCard.style.display = '';
-    const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
-    if (leads.length > 0) {
-      const cpl = totalSpend / leads.length;
-      cplEl.textContent = '$'+fmt(cpl);
-      sub.textContent = '$'+fmt(totalSpend)+' spend \u00f7 '+leads.length+' leads';
-
-      // Build weekly CPL trend
-      const weekMap = {}, leadWeekMap = {};
-      meta.forEach(r => { if(r.date) { const w = r.date.slice(0,7); weekMap[w] = (weekMap[w]||0) + r.spend; }});
-      leads.forEach(r => { if(r.date) { const w = r.date.slice(0,7); leadWeekMap[w] = (leadWeekMap[w]||0) + 1; }});
-      const weeks = [...new Set([...Object.keys(weekMap), ...Object.keys(leadWeekMap)])].sort();
-      const cplTrend = weeks.map(w => { const s=weekMap[w]||0, l=leadWeekMap[w]||0; return l>0?s/l:null; }).filter(v=>v!==null);
-
-      if (cplTrend.length >= 2) {
-        const down = cplTrend[cplTrend.length-1] <= cplTrend[0];
-        badge.textContent = down ? '\u2193 Trending down' : '\u2191 Trending up';
-        badge.style.background = down ? 'var(--green-pale)' : '#fff0f0';
-        badge.style.color = down ? 'var(--green)' : '#dc2626';
-      } else {
-        badge.textContent = '';
-      }
-      drawCPLSpark(cplTrend, true);
-    } else {
-      cplEl.textContent = '\u2014';
-      cplEl.style.color = '#d1d5db';
-      badge.textContent = '';
-      sub.textContent = 'Waiting for first leads to calculate';
-      drawCPLSpark([], true);
-    }
-  } else if (VIEW_MODE === 'past' && leads.length > 0) {
-    // Past: show final CPL with historical cost-over-time line (not "trending")
-    cplCard.style.display = '';
-    const totalSpend = meta.reduce((s,r)=>s+r.spend,0);
-    const cpl = totalSpend / leads.length;
+    const cpl = totalSpendCPL / leads.length;
     cplEl.textContent = '$'+fmt(cpl);
     cplEl.style.color = '#111';
-    sub.textContent = '$'+Math.round(totalSpend).toLocaleString()+' / '+leads.length+' leads';
+    sub.textContent = totalSpendCPL > 0 ? '$'+fmt(totalSpendCPL)+' / '+leads.length : leads.length+' leads';
 
-    // Build cumulative CPL over time (running average as leads came in)
-    const sorted = [...leads].sort((a,b) => (a.date||'').localeCompare(b.date||''));
-    const cumCPL = [];
-    let runningLeads = 0;
-    sorted.forEach((l, i) => {
-      runningLeads++;
-      cumCPL.push(totalSpend / leads.length); // flat line for single-campaign
-    });
-    // Create a gentle declining shape to show cost efficiency over campaign life
-    const pts = [];
-    const steps = Math.min(sorted.length, 8);
-    for (let i = 0; i < steps; i++) {
-      const pct = i / (steps - 1);
-      const leadsAtPoint = Math.ceil((i + 1) / steps * leads.length);
-      pts.push(totalSpend / leadsAtPoint);
+    // Build weekly CPL trend
+    const weekMap = {}, leadWeekMap = {};
+    meta.forEach(r => { if(r.date) { const w = r.date.slice(0,7); weekMap[w] = (weekMap[w]||0) + r.spend; }});
+    leads.forEach(r => { if(r.date) { const w = r.date.slice(0,7); leadWeekMap[w] = (leadWeekMap[w]||0) + 1; }});
+    const weeks = [...new Set([...Object.keys(weekMap), ...Object.keys(leadWeekMap)])].sort();
+    const cplTrend = weeks.map(w => { const s=weekMap[w]||0, l=leadWeekMap[w]||0; return l>0?s/l:null; }).filter(v=>v!==null);
+
+    if (cplTrend.length >= 2) {
+      cplSparkCard.style.display = '';
+      const down = cplTrend[cplTrend.length-1] <= cplTrend[0];
+      trendBadge.textContent = down ? '\u2193' : '\u2191';
+      trendBadge.style.background = down ? 'var(--green-pale)' : '#fff0f0';
+      trendBadge.style.color = down ? 'var(--green)' : '#dc2626';
+      drawCPLSpark(cplTrend, VIEW_MODE === 'live');
+    } else {
+      cplSparkCard.style.display = 'none';
+      trendBadge.textContent = '';
     }
-
-    badge.textContent = 'Campaign Final';
-    badge.style.background = '#f3f4f6';
-    badge.style.color = '#6b7280';
-    drawCPLSpark(pts, false);
+  } else if (VIEW_MODE === 'live') {
+    cplCard.style.display = '';
+    cplEl.textContent = '\u2014';
+    cplEl.style.color = '#d1d5db';
+    trendBadge.textContent = '';
+    sub.textContent = 'Awaiting leads';
+    cplSparkCard.style.display = 'none';
+    drawCPLSpark([], true);
   } else {
     cplCard.style.display = 'none';
+    cplSparkCard.style.display = 'none';
   }
 }
 
@@ -1056,11 +1078,8 @@ function updateLeadHealth(from, to) {
   document.getElementById('funnel-conv').style.width = totalLeads > 0 ? (numConverted / totalLeads * 100) + '%' : '0%';
   document.getElementById('funnel-ratio').textContent = numConverted + ' / ' + totalLeads;
 
-  // Health badge + headline
+  // Health badge
   const badge = document.getElementById('health-badge');
-  const headline = document.getElementById('health-headline');
-  const headlineText = document.getElementById('health-headline-text');
-  const pulseLabel = document.getElementById('health-pulse-label');
 
   if (numConverted > 0 && roas >= 1) {
     badge.className = 'health-status health-healthy';
@@ -1075,8 +1094,6 @@ function updateLeadHealth(from, to) {
     badge.className = 'health-status health-cold';
     badge.innerHTML = '<span class="health-dot health-dot-gray"></span>Standby';
   }
-  pulseLabel.textContent = '';
-  headline.style.display = 'none';
 
   // Recent conversions list
   const listWrap = document.getElementById('health-conv-list');

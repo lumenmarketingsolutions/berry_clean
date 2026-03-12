@@ -251,10 +251,16 @@ def get_meta_data():
     return []
 
 
+def is_retargeting(campaign_name):
+    return "retarget" in str(campaign_name).lower()
+
+
 def is_live_campaign(campaign_name, row_date):
-    """A campaign is live if it's 'window washing' type AND on/after launch date."""
+    """A campaign is live if it's window-washing type AND on/after launch date (not retargeting)."""
     name_lower = str(campaign_name).lower()
-    is_ww = "window" in name_lower or "washing" in name_lower or "wc" in name_lower or "retarget" in name_lower
+    if "retarget" in name_lower:
+        return False  # retargeting tracked separately
+    is_ww = "window" in name_lower or "washing" in name_lower or "wc" in name_lower
     date_ok = bool(row_date) and row_date >= LAUNCH_DATE
     return is_ww and date_ok
 
@@ -268,8 +274,10 @@ def fetch_meta_data():
 
     raw_meta_live = []
     raw_meta_past = []
+    raw_meta_retarget = []
     ad_map_live   = {}
     ad_map_past   = {}
+    ad_map_retarget = {}
     for r in meta_api_rows:
         ad_id = str(r.get("ad_id","")).strip()
         if not ad_id: continue
@@ -289,8 +297,10 @@ def fetch_meta_data():
             "campaign": campaign_name,
         }
 
-        live = is_live_campaign(campaign_name, row_date)
-        if live:
+        if is_retargeting(campaign_name):
+            raw_meta_retarget.append(row_data)
+            ad_map = ad_map_retarget
+        elif is_live_campaign(campaign_name, row_date):
             raw_meta_live.append(row_data)
             ad_map = ad_map_live
         else:
@@ -333,7 +343,8 @@ def fetch_meta_data():
         ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
         return ads
 
-    return build_ads(ad_map_live), raw_meta_live, build_ads(ad_map_past), raw_meta_past
+    retarget_ad_ids = list(ad_map_retarget.keys())
+    return build_ads(ad_map_live), raw_meta_live, build_ads(ad_map_past), raw_meta_past, raw_meta_retarget, retarget_ad_ids
 
 def fetch_leads():
     """Return (live_leads_list, past_leads_list) from Perspective_Leads."""
@@ -422,15 +433,20 @@ def fetch_conversions():
         is_converted = status.lower() == "converted" and revenue > 0
         is_opportunity = status.lower() in ("invoice sent", "estimate sent") and revenue > 0
 
+        # Flag test conversions (Kendall = test data, show in list but exclude from metrics)
+        email = row[col("email")].strip().lower() if col("email") is not None and col("email") < len(row) else ""
+        is_test = "kendall" in f"{first} {last}".lower() or "kendallwdavis" in email
+
         conv = {
             "name": f"{first} {last}".strip(),
             "lead_status": status,
-            "revenue": revenue if is_converted else 0,
-            "opportunity": revenue if is_opportunity else 0,
-            "converted": is_converted,
-            "is_opportunity": is_opportunity,
+            "revenue": revenue if is_converted and not is_test else 0,
+            "opportunity": revenue if is_opportunity and not is_test else 0,
+            "converted": is_converted and not is_test,
+            "is_opportunity": is_opportunity and not is_test,
             "date": lead_date,
             "utm": utm,
+            "is_test": is_test,
         }
         if lead_date and lead_date >= LAUNCH_DATE:
             live_conv.append(conv)
@@ -474,7 +490,7 @@ def debug_meta():
 @login_required
 def dashboard():
     try:
-        live_ads, raw_meta_live, past_ads, raw_meta_past = fetch_meta_data()
+        live_ads, raw_meta_live, past_ads, raw_meta_past, raw_meta_retarget, retarget_ad_ids = fetch_meta_data()
         live_leads, past_leads = fetch_leads()
         live_conversions, past_conversions = fetch_conversions()
 
@@ -500,6 +516,9 @@ def dashboard():
             top_ad["leads"] += unmatched_past
         past_ads.sort(key=lambda x: (-x["leads"], -x["ctr"]))
 
+        # Count leads from retargeting ads (UTM matches retargeting ad_ids)
+        retarget_leads = [r for r in live_leads if r.get("utm") in retarget_ad_ids]
+
         # Live = any live meta data exists
         is_live = len(raw_meta_live) > 0
 
@@ -507,6 +526,7 @@ def dashboard():
     except Exception as exc:
         live_ads, past_ads = [], []
         raw_meta_live, raw_meta_past = [], []
+        raw_meta_retarget, retarget_ad_ids, retarget_leads = [], [], []
         live_leads, past_leads = [], []
         live_conversions, past_conversions = [], []
         is_live = False
@@ -517,6 +537,8 @@ def dashboard():
         live_leads=live_leads, past_leads=past_leads,
         live_conversions=live_conversions, past_conversions=past_conversions,
         raw_meta_live=raw_meta_live, raw_meta_past=raw_meta_past,
+        raw_meta_retarget=raw_meta_retarget, retarget_ad_ids=retarget_ad_ids,
+        retarget_leads=retarget_leads,
         is_live=is_live, launch_date=LAUNCH_DATE,
         error=error, user_name=current_user.name
     )

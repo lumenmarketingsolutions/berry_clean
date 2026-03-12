@@ -554,6 +554,78 @@
     <span id="kpi-impressions" style="display:none;">0</span>
   </div>
 
+  <!-- Retargeting Card -->
+  <script>
+    const RAW_META_RETARGET = {{ raw_meta_retarget | tojson }};
+    const RETARGET_AD_IDS   = {{ retarget_ad_ids | tojson }};
+    const RETARGET_LEADS    = {{ retarget_leads | tojson }};
+  </script>
+  <div class="card card-hover mb-4" id="retarget-card" style="padding:16px 20px;">
+    <div class="flex items-center gap-2 mb-3">
+      <div style="width:28px;height:28px;border-radius:8px;background:#fef3c7;border:1px solid #fde68a;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+        <svg width="14" height="14" fill="none" stroke="#d97706" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+      </div>
+      <p class="section-label" style="margin-bottom:0;">Retargeting</p>
+      <span id="retarget-status" style="font-size:10px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;border-radius:999px;padding:2px 8px;margin-left:auto;"></span>
+    </div>
+    <div class="grid grid-cols-3 gap-3">
+      <div style="text-align:center;">
+        <p style="font-size:22px;font-weight:700;color:#1a2e1b;" id="retarget-recaptured">0</p>
+        <p class="metric-label">Recaptured</p>
+        <p class="metric-sub">Leads saved</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:22px;font-weight:700;color:#1a2e1b;" id="retarget-impressions">0</p>
+        <p class="metric-label">Impressions</p>
+        <p class="metric-sub">Follow-ups shown</p>
+      </div>
+      <div style="text-align:center;">
+        <p style="font-size:22px;font-weight:700;color:#1a2e1b;" id="retarget-spend">$0</p>
+        <p class="metric-label">Spend</p>
+        <p class="metric-sub">Retarget cost</p>
+      </div>
+    </div>
+    <div id="retarget-empty" style="text-align:center;padding:6px 0;margin-top:8px;">
+      <p style="font-size:12px;color:#aab9ab;">Retargeting campaign is active. Visitors who don't book will see follow-up ads.</p>
+    </div>
+  </div>
+  <script>
+  (function() {
+    const meta = RAW_META_RETARGET || [];
+    const leads = RETARGET_LEADS || [];
+    const status = document.getElementById('retarget-status');
+    const emptyMsg = document.getElementById('retarget-empty');
+
+    const totalImpr  = meta.reduce((s,r) => s + r.impressions, 0);
+    const totalSpend = meta.reduce((s,r) => s + r.spend, 0);
+    const recaptured = leads.length;
+
+    document.getElementById('retarget-recaptured').textContent = recaptured;
+    document.getElementById('retarget-impressions').textContent = totalImpr.toLocaleString();
+    document.getElementById('retarget-spend').textContent = totalSpend > 0 ? '$' + totalSpend.toFixed(2) : '$0';
+
+    if (recaptured > 0) {
+      document.getElementById('retarget-recaptured').style.color = 'var(--green)';
+      status.textContent = 'Recapturing';
+      status.style.background = '#f0fdf4';
+      status.style.color = 'var(--green)';
+      status.style.border = '1px solid var(--green-border)';
+      emptyMsg.style.display = 'none';
+    } else if (totalImpr > 0) {
+      status.textContent = 'Warming';
+      status.style.background = '#fefce8';
+      status.style.color = '#854d0e';
+      status.style.border = '1px solid #fde047';
+      emptyMsg.style.display = 'none';
+    } else {
+      status.textContent = 'Active';
+      status.style.background = '#f3f4f6';
+      status.style.color = '#9ca3af';
+      status.style.border = '1px solid #e5e7eb';
+    }
+  })();
+  </script>
+
   <!-- Ad Rankings -->
   <section class="card overflow-hidden" id="ad-rankings-section">
     <div class="px-5 py-4 flex items-center justify-between" style="border-bottom:1px solid #f3f4f6;">
@@ -973,7 +1045,7 @@ function updateKPIs(from,to){
     const cpl = totalSpendCPL / leads.length;
     cplEl.textContent = '$'+fmt(cpl);
     cplEl.style.color = '#111';
-    sub.textContent = totalSpendCPL > 0 ? '$'+fmt(totalSpendCPL)+' / '+leads.length : leads.length+' leads';
+    sub.textContent = '';
 
     // Build weekly CPL trend
     const weekMap = {}, leadWeekMap = {};
@@ -1234,20 +1306,23 @@ function updateLeadHealth(from, to) {
       const initials = c.name ? c.name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2) : '?';
       const isConv = c.converted;
       const isOpp = c.is_opportunity;
+      const isTest = c.is_test || false;
       const avatarContent = isConv ? '&#127827;' : initials;
-      const avatarClass = isConv ? 'conv-avatar-green' : isOpp ? 'conv-avatar-amber' : 'conv-avatar-gray';
-      const statusLabel = c.lead_status || (isConv ? 'Converted' : 'In Pipeline');
-      const statusBadgeStyle = isConv
+      const avatarClass = isTest ? 'conv-avatar-gray' : isConv ? 'conv-avatar-green' : isOpp ? 'conv-avatar-amber' : 'conv-avatar-gray';
+      const statusLabel = isTest ? 'Test' : c.lead_status || (isConv ? 'Converted' : 'In Pipeline');
+      const statusBadgeStyle = isTest
+        ? 'background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;'
+        : isConv
         ? 'background:var(--green-pale);color:var(--green);border:1px solid var(--green-border);'
         : isOpp
         ? 'background:#fefce8;color:#854d0e;border:1px solid #fde047;'
         : 'background:#f3f4f6;color:#9ca3af;border:1px solid #e5e7eb;';
       const dollarAmt = isConv ? c.revenue : isOpp ? c.opportunity : 0;
-      const revenueText = dollarAmt > 0 ? '$' + dollarAmt.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
+      const revenueText = (!isTest && dollarAmt > 0) ? '$' + dollarAmt.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}) : '';
       return `<div class="conv-item">
-        <div class="conv-avatar ${avatarClass}">${avatarContent}</div>
+        <div class="conv-avatar ${avatarClass}">${isTest ? '🔧' : avatarContent}</div>
         <div style="flex:1;min-width:0;">
-          <p class="text-sm font-medium truncate" style="color:#111;">${c.name || 'Unknown'}</p>
+          <p class="text-sm font-medium truncate" style="color:${isTest ? '#9ca3af' : '#111'};">${c.name || 'Unknown'}${isTest ? ' <span style="font-size:10px;color:#bbb;">(test)</span>' : ''}</p>
           <p style="font-size:11px;color:#bbb;">${c.date || ''}</p>
         </div>
         <div style="text-align:right;">

@@ -513,12 +513,12 @@
       <div class="grid grid-cols-3 gap-4">
         <!-- CTR gauge -->
         <div style="text-align:center;">
-          <div style="position:relative;width:56px;height:56px;margin:0 auto 6px;">
-            <svg viewBox="0 0 56 56" style="transform:rotate(-90deg);">
-              <circle cx="28" cy="28" r="22" fill="none" stroke="#f3f4f6" stroke-width="4"/>
-              <circle id="ctr-gauge-arc" cx="28" cy="28" r="22" fill="none" stroke="#e5e7eb" stroke-width="4" stroke-dasharray="138.23" stroke-dashoffset="138.23" stroke-linecap="round" style="transition:stroke-dashoffset .8s ease,stroke .3s;"/>
+          <div style="position:relative;width:72px;height:72px;margin:0 auto 6px;">
+            <svg viewBox="0 0 72 72" style="transform:rotate(-90deg);">
+              <circle cx="36" cy="36" r="28" fill="none" stroke="#f3f4f6" stroke-width="5"/>
+              <circle id="ctr-gauge-arc" cx="36" cy="36" r="28" fill="none" stroke="#e5e7eb" stroke-width="5" stroke-dasharray="175.93" stroke-dashoffset="175.93" stroke-linecap="round" style="transition:stroke-dashoffset .8s ease,stroke .3s;"/>
             </svg>
-            <span id="ctr-gauge-val" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#111;">0%</span>
+            <span id="ctr-gauge-val" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#111;">0%</span>
           </div>
           <p class="metric-label">CTR</p>
         </div>
@@ -619,9 +619,9 @@
       emptyMsg.style.display = 'none';
     } else {
       status.textContent = 'Active';
-      status.style.background = '#f3f4f6';
-      status.style.color = '#9ca3af';
-      status.style.border = '1px solid #e5e7eb';
+      status.style.background = '#f0fdf4';
+      status.style.color = 'var(--green)';
+      status.style.border = '1px solid var(--green-border)';
     }
   })();
   </script>
@@ -1032,7 +1032,7 @@ function updateKPIs(from,to){
   const ctrGaugeArc = document.getElementById('ctr-gauge-arc');
   const ctrGaugeVal = document.getElementById('ctr-gauge-val');
   if (ctrGaugeArc) {
-    const ctrCircum = 138.23;
+    const ctrCircum = 175.93;
     const ctrCapped = Math.min(avgCtr / 8, 1); // 8% = full ring
     ctrGaugeArc.style.strokeDashoffset = ctrCircum * (1 - ctrCapped);
     ctrGaugeArc.style.stroke = avgCtr >= 3 ? 'var(--green)' : avgCtr >= 1.5 ? '#111' : avgCtr > 0 ? '#eab308' : '#e5e7eb';

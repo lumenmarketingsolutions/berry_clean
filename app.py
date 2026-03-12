@@ -256,7 +256,7 @@ def is_retargeting(campaign_name):
 
 
 # Explicit campaign classification — prevents unknown campaigns from leaking into metrics
-HOLIDAY_KEYWORDS = ["christmas", "holiday", "xmas", "lights"]
+HOLIDAY_KEYWORDS = ["christmas lights"]
 LIVE_KEYWORDS    = ["window", "washing", "wc"]
 
 def classify_campaign(campaign_name, row_date):

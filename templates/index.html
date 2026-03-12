@@ -640,6 +640,7 @@
         <p style="font-size:12px;margin-top:4px;">Rankings will appear once Window Washing goes live</p>
       </div>
     </div>
+    <p id="ad-rankings-disclaimer" style="display:none;font-size:11px;color:#bbb;text-align:center;padding:6px 16px 12px;">Ads are still populating. All creatives will be visible within 24 hours.</p>
   </section>
 
 </main>
@@ -793,6 +794,11 @@ function renderAds(ads) {
   mobileHTML += '</div>';
 
   container.innerHTML = desktopHTML + mobileHTML;
+
+  // Show disclaimer if within 24h of launch and viewing live campaign
+  const disclaimer = document.getElementById('ad-rankings-disclaimer');
+  const hoursSinceLaunch = (Date.now() - new Date(LAUNCH_DATE + 'T00:00:00').getTime()) / 3600000;
+  disclaimer.style.display = (VIEW_MODE === 'live' && hoursSinceLaunch < 24) ? 'block' : 'none';
 }
 
 // ── CPL Sparkline ───────────────────────────────────────────────

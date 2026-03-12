@@ -339,7 +339,7 @@ def fetch_conversions():
         lead_date = parse_date(raw_date[:10])
 
         is_converted = status.lower() == "converted" and revenue > 0
-        is_opportunity = status.lower() == "invoice sent" and revenue > 0
+        is_opportunity = status.lower() in ("invoice sent", "estimate sent") and revenue > 0
 
         conv = {
             "name": f"{first} {last}".strip(),

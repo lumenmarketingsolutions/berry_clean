@@ -396,7 +396,6 @@
             <p class="metric-label">Revenue</p>
             <p class="metric-value-green mt-2" id="health-revenue">$0</p>
             <p class="metric-sub" id="health-revenue-sub">From converted leads</p>
-          <p class="metric-sub" id="health-opportunity" style="display:none;margin-top:2px;color:#d97706;font-weight:500;"></p>
           </div>
           <div class="card card-hover p-4" style="display:flex;align-items:center;gap:14px;">
             <div class="roas-ring" id="roas-ring">
@@ -724,14 +723,32 @@ function renderAds(ads) {
 }
 
 // ── CPL Sparkline ───────────────────────────────────────────────
+function scaleCanvas(canvas) {
+  const dpr = window.devicePixelRatio || 1;
+  if (!canvas.dataset.scaled) {
+    const w = canvas.width;
+    const h = canvas.height;
+    canvas.width = w * dpr;
+    canvas.height = h * dpr;
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
+    canvas.getContext('2d').scale(dpr, dpr);
+    canvas.dataset.scaled = '1';
+  }
+  const W = parseInt(canvas.style.width);
+  const H = parseInt(canvas.style.height);
+  canvas.getContext('2d').clearRect(0, 0, W, H);
+}
+
 function drawCPLSpark(data, isLive, endLabel) {
   const canvas = document.getElementById('cpl-spark');
   if (!canvas) return;
+  scaleCanvas(canvas);
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const W = parseInt(canvas.style.width);
+  const H = parseInt(canvas.style.height);
   const pad = 4;
   const rightPad = endLabel ? 44 : pad;
-  ctx.clearRect(0,0,W,H);
 
   // Empty state for live with no data — dashed placeholder line
   if (data.length < 2) {
@@ -803,10 +820,11 @@ function drawCPLSpark(data, isLive, endLabel) {
 function drawCPLSparkPlaceholder() {
   const canvas = document.getElementById('cpl-spark-placeholder');
   if (!canvas) return;
+  scaleCanvas(canvas);
   const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
+  const W = parseInt(canvas.style.width);
+  const H = parseInt(canvas.style.height);
   const pad = 6;
-  ctx.clearRect(0,0,W,H);
 
   // Simulated downward trend line (what CPL will look like)
   const points = [38, 35, 33, 30, 26, 24, 21, 18, 16, 14];
@@ -1133,14 +1151,6 @@ function updateLeadHealth(from, to) {
     ? numConverted + ' converted job' + (numConverted !== 1 ? 's' : '')
     : 'From converted leads';
 
-  // Opportunity cost (invoiced but not closed)
-  const oppEl = document.getElementById('health-opportunity');
-  if (totalOpportunity > 0) {
-    oppEl.style.display = '';
-    oppEl.textContent = '+$' + totalOpportunity.toLocaleString('en-US', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' invoiced (unclosed)';
-  } else {
-    oppEl.style.display = 'none';
-  }
 
   // ROAS
   const roasVal = document.getElementById('roas-val');

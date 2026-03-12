@@ -287,8 +287,8 @@ function runBerryAnimation(name) {
   }
   raf = requestAnimationFrame(draw);
 
-  // 5.25s total from start to dashboard
-  setTimeout(() => { window.location.href = '/'; }, 5250);
+  // 4s total from start to dashboard
+  setTimeout(() => { window.location.href = '/'; }, 4000);
 }
 
 function showWelcome(name) {
@@ -296,9 +296,9 @@ function showWelcome(name) {
   document.getElementById('wf-headline').textContent = 'Welcome, ' + name;
   document.getElementById('wf-quip').textContent = QUIPS[Math.floor(Math.random()*QUIPS.length)];
   setTimeout(() => { document.getElementById('welcome-content').classList.add('in'); }, 60);
-  // If called directly (no animation), navigate after 2.6s
+  // If called directly (no animation), navigate after 1.6s
   if (!document.getElementById('berry-canvas').style.opacity) {
-    setTimeout(() => { window.location.href = '/'; }, 2600);
+    setTimeout(() => { window.location.href = '/'; }, 1600);
   }
 }
 </script>
